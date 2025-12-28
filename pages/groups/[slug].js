@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import NavBar from "../../components/NavBar";
+import { useProfile } from "../../components/useProfile";
 
 const groups = {
   "intermediate-chinese": {
@@ -75,6 +76,7 @@ const groups = {
 export default function GroupDetailPage() {
   const router = useRouter();
   const { slug } = router.query;
+  const { profile } = useProfile();
   const group = groups[slug] || {
     name: "Language Group",
     level: "Community",
@@ -85,6 +87,52 @@ export default function GroupDetailPage() {
     focus: ["Weekly prompts", "Practice rooms", "Peer feedback"],
     nextEvent: "Upcoming class",
   };
+  const currentAvatar = profile.avatar || "sunrise";
+  const threadSamples = [
+    {
+      id: "t1",
+      title: "How do you build stronger rebuttals?",
+      author: "Ariana Chen",
+      avatar: "berry",
+      time: "2h ago",
+      replies: 6,
+      preview: "I keep freezing in rebuttals. Any drills you recommend?",
+    },
+    {
+      id: "t2",
+      title: "Debate motion: AI in education",
+      author: "Luis Ortega",
+      avatar: "mint",
+      time: "5h ago",
+      replies: 4,
+      preview: "Let’s share resources that cover both sides of the motion.",
+    },
+    {
+      id: "t3",
+      title: "Vocabulary list for next week",
+      author: "Mei Tan",
+      avatar: "plum",
+      time: "1d ago",
+      replies: 9,
+      preview: "I drafted a list — want to collaborate on examples?",
+    },
+  ];
+  const commentSamples = [
+    {
+      id: "c1",
+      author: "Jordan Lee",
+      avatar: "ember",
+      time: "10 min ago",
+      text: "I like the three-part structure: claim, evidence, impact. Works well in rebuttal.",
+    },
+    {
+      id: "c2",
+      author: "Mina Sol",
+      avatar: "sunrise",
+      time: "1h ago",
+      text: "Try speed drills: 30 seconds to answer a prompt, 10 seconds to reset.",
+    },
+  ];
 
   return (
     <>
@@ -159,6 +207,79 @@ export default function GroupDetailPage() {
                   Book a seat
                 </Link>
               </article>
+            </div>
+          </section>
+
+          <section className="detail-section">
+            <div className="section-head compact">
+              <div>
+                <p className="eyebrow">Group discussion</p>
+                <h2>Threads</h2>
+              </div>
+              <Link className="cta small" href="/signin">
+                Start a thread
+              </Link>
+            </div>
+            <div className="thread-list">
+              {threadSamples.map((thread) => (
+                <div key={thread.id} className="thread-item">
+                  <img
+                    className="thread-avatar"
+                    src={`/avatars/${thread.avatar}.svg`}
+                    alt={`${thread.author} avatar`}
+                  />
+                  <div>
+                    <h3>{thread.title}</h3>
+                    <p className="thread-meta">
+                      {thread.author} · {thread.time} · {thread.replies} replies
+                    </p>
+                    <p className="thread-preview">{thread.preview}</p>
+                  </div>
+                  <button className="cta ghost small" type="button">
+                    Open
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="detail-section">
+            <div className="section-head compact">
+              <div>
+                <p className="eyebrow">Thread sample</p>
+                <h2>Comments</h2>
+              </div>
+            </div>
+            <div className="comment-box">
+              <img
+                className="comment-avatar"
+                src={`/avatars/${currentAvatar}.svg`}
+                alt="Your avatar"
+              />
+              <div className="comment-input">
+                <p className="label">Reply as {profile.nickname || "Member"}</p>
+                <textarea rows={3} placeholder="Share your insight..." />
+                <button className="cta small" type="button">
+                  Post reply
+                </button>
+              </div>
+            </div>
+            <div className="comment-list">
+              {commentSamples.map((comment) => (
+                <div key={comment.id} className="comment-item">
+                  <img
+                    className="comment-avatar"
+                    src={`/avatars/${comment.avatar}.svg`}
+                    alt={`${comment.author} avatar`}
+                  />
+                  <div>
+                    <p className="thread-meta">
+                      {comment.author} · {comment.time}
+                    </p>
+                    <p className="thread-preview">{comment.text}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         </div>
