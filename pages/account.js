@@ -1,25 +1,39 @@
 import Head from "next/head";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import NavBar from "../components/NavBar";
+import { useProfile } from "../components/useProfile";
 
 export default function AccountPage() {
   const { data: session, status } = useSession();
+  const { profile, saveProfile } = useProfile();
   const defaultName = session?.user?.name || session?.user?.email || "Member";
-  const [nickname, setNickname] = useState("");
-  const [avatarChoice, setAvatarChoice] = useState("sunrise");
+  const [nickname, setNickname] = useState(profile.nickname || "");
+  const [avatarChoice, setAvatarChoice] = useState(profile.avatar || "sunrise");
+  const [saved, setSaved] = useState(false);
   const displayName = nickname || defaultName;
   const avatarOptions = useMemo(
     () => [
-      { id: "sunrise", label: "Sunrise" },
-      { id: "berry", label: "Berry" },
-      { id: "plum", label: "Plum" },
-      { id: "mint", label: "Mint" },
-      { id: "ember", label: "Ember" },
+      { id: "sunrise", label: "Sunrise", src: "/avatars/sunrise.svg" },
+      { id: "berry", label: "Berry", src: "/avatars/berry.svg" },
+      { id: "plum", label: "Plum", src: "/avatars/plum.svg" },
+      { id: "mint", label: "Mint", src: "/avatars/mint.svg" },
+      { id: "ember", label: "Ember", src: "/avatars/ember.svg" },
     ],
     []
   );
+
+  useEffect(() => {
+    setNickname(profile.nickname || "");
+    setAvatarChoice(profile.avatar || "sunrise");
+  }, [profile.nickname, profile.avatar]);
+
+  const handleSave = () => {
+    saveProfile({ nickname: nickname.trim(), avatar: avatarChoice });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   return (
     <>
@@ -103,9 +117,11 @@ export default function AccountPage() {
               <article className="account-card profile-card">
                 <h3>Profile settings</h3>
                 <div className="profile-preview">
-                  <div className={`avatar avatar-${avatarChoice}`} aria-hidden="true">
-                    {displayName.slice(0, 1).toUpperCase()}
-                  </div>
+                  <img
+                    className="avatar-img"
+                    src={`/avatars/${avatarChoice}.svg`}
+                    alt="Selected avatar"
+                  />
                   <div>
                     <p className="label">Display name</p>
                     <p className="value">{displayName}</p>
@@ -130,15 +146,13 @@ export default function AccountPage() {
                       }`}
                       onClick={() => setAvatarChoice(option.id)}
                     >
-                      <span className={`avatar avatar-${option.id}`} aria-hidden="true">
-                        {displayName.slice(0, 1).toUpperCase()}
-                      </span>
+                      <img className="avatar-img" src={option.src} alt={option.label} />
                       {option.label}
                     </button>
                   ))}
                 </div>
-                <button className="cta small" type="button">
-                  Save changes
+                <button className="cta small" type="button" onClick={handleSave}>
+                  {saved ? "Saved!" : "Save changes"}
                 </button>
               </article>
               <article className="account-card">

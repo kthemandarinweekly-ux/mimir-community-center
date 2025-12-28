@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useProfile } from "./useProfile";
 
 export default function NavBar({ action }) {
   const { data: session } = useSession();
+  const { profile } = useProfile();
   const userLabel = session?.user?.name || session?.user?.email || "Account";
+  const nickname = profile.nickname?.trim();
   const actionHref = action?.href || (session ? "/account" : "/signin");
-  const actionLabel = action?.label || (session ? userLabel : "Sign in");
+  const actionLabel = action?.label || (session ? nickname || userLabel : "Sign in");
   const actionClass = action?.className || "cta ghost";
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",") || [];
   const isAdmin = adminEmails.includes(session?.user?.email || "");

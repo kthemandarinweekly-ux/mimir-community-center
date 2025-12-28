@@ -662,21 +662,19 @@ p {
   gap: 16px;
 }
 
+.avatar-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
 .profile-field {
   display: grid;
   gap: 8px;
   color: var(--ink-soft);
   font-size: 0.9rem;
-}
-
-.avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
-  color: white;
-  font-weight: 700;
 }
 
 .avatar-grid {
@@ -701,26 +699,6 @@ p {
 .avatar-option.selected {
   border-color: rgba(111, 92, 255, 0.5);
   box-shadow: 0 12px 24px rgba(111, 92, 255, 0.18);
-}
-
-.avatar-sunrise {
-  background: linear-gradient(135deg, #6f5cff, #f4a24d);
-}
-
-.avatar-berry {
-  background: linear-gradient(135deg, #ef6b6b, #6f5cff);
-}
-
-.avatar-plum {
-  background: linear-gradient(135deg, #5540c7, #b25cff);
-}
-
-.avatar-mint {
-  background: linear-gradient(135deg, #2fb8a5, #6f5cff);
-}
-
-.avatar-ember {
-  background: linear-gradient(135deg, #f4a24d, #ef6b6b);
 }
 
 .admin-layout {
