@@ -10,13 +10,13 @@ export default function NavBar({ action }) {
 
   return (
     <nav className="nav">
-      <div className="logo">
+      <Link className="logo" href="/">
         <span className="logo-mark">M</span>
         <div>
           <p className="logo-name">Mimir</p>
           <p className="logo-tag">Community Center</p>
         </div>
-      </div>
+      </Link>
       <div className="nav-links">
         <Link href="/groups">Groups</Link>
         <Link href="/calendar">Calendar</Link>
