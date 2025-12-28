@@ -532,6 +532,42 @@ p {
   font-weight: 600;
 }
 
+.account-hero {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.account-card {
+  background: white;
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 16px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  color: var(--ink-soft);
+}
+
+.list-item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--cream);
+  border: 1px solid rgba(31, 27, 33, 0.08);
+  font-size: 0.95rem;
+}
+
 @media (max-width: 900px) {
   .nav {
     flex-direction: column;
@@ -566,6 +602,10 @@ p {
   }
 
   .signin-card {
+    grid-template-columns: 1fr;
+  }
+
+  .account-hero {
     grid-template-columns: 1fr;
   }
 }
@@ -603,7 +643,8 @@ p {
 .notice,
 .event-card,
 .notification-panel,
-.signin-card {
+.signin-card,
+.account-card {
   animation: fadeUp 0.8s ease both;
 }
 

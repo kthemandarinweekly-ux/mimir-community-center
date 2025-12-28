@@ -3,6 +3,7 @@ import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import NavBar from "../components/NavBar";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -42,24 +43,7 @@ export default function SignInPage() {
       </Head>
       <div className="grain"></div>
       <header className="site-header">
-        <nav className="nav">
-          <div className="logo">
-            <span className="logo-mark">M</span>
-            <div>
-              <p className="logo-name">Mimir</p>
-              <p className="logo-tag">Community Center</p>
-            </div>
-          </div>
-          <div className="nav-links">
-            <Link href="/groups">Groups</Link>
-            <Link href="/calendar">Calendar</Link>
-            <Link href="/announcements">Announcements</Link>
-            <Link href="/competitions">Competitions</Link>
-          </div>
-          <Link className="cta ghost" href="/">
-            Back home
-          </Link>
-        </nav>
+        <NavBar action={{ label: "Back home", href: "/" }} />
       </header>
 
       <main>

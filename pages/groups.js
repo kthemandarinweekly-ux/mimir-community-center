@@ -1,5 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
+import NavBar from "../components/NavBar";
 
 export default function GroupsPage() {
   return (
@@ -15,24 +16,7 @@ export default function GroupsPage() {
       </Head>
       <div className="grain"></div>
       <header className="site-header">
-        <nav className="nav">
-          <div className="logo">
-            <span className="logo-mark">M</span>
-            <div>
-              <p className="logo-name">Mimir</p>
-              <p className="logo-tag">Community Center</p>
-            </div>
-          </div>
-          <div className="nav-links">
-            <Link href="/groups">Groups</Link>
-            <Link href="/calendar">Calendar</Link>
-            <Link href="/announcements">Announcements</Link>
-            <Link href="/competitions">Competitions</Link>
-          </div>
-          <Link className="cta ghost" href="/signin">
-            Sign in
-          </Link>
-        </nav>
+        <NavBar />
         <section className="hero">
           <div className="hero-copy">
             <p className="eyebrow">Choose your track</p>
