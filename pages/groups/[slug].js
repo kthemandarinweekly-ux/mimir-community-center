@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useEffect, useMemo, useState } from "react";
 import NavBar from "../../components/NavBar";
 import { useProfile } from "../../components/useProfile";
 
@@ -88,51 +89,114 @@ export default function GroupDetailPage() {
     nextEvent: "Upcoming class",
   };
   const currentAvatar = profile.avatar || "sunrise";
-  const threadSamples = [
-    {
-      id: "t1",
-      title: "How do you build stronger rebuttals?",
-      author: "Ariana Chen",
-      avatar: "berry",
-      time: "2h ago",
-      replies: 6,
-      preview: "I keep freezing in rebuttals. Any drills you recommend?",
-    },
-    {
-      id: "t2",
-      title: "Debate motion: AI in education",
-      author: "Luis Ortega",
-      avatar: "mint",
-      time: "5h ago",
-      replies: 4,
-      preview: "Let’s share resources that cover both sides of the motion.",
-    },
-    {
-      id: "t3",
-      title: "Vocabulary list for next week",
-      author: "Mei Tan",
-      avatar: "plum",
-      time: "1d ago",
-      replies: 9,
-      preview: "I drafted a list — want to collaborate on examples?",
-    },
-  ];
-  const commentSamples = [
-    {
-      id: "c1",
-      author: "Jordan Lee",
-      avatar: "ember",
-      time: "10 min ago",
-      text: "I like the three-part structure: claim, evidence, impact. Works well in rebuttal.",
-    },
-    {
-      id: "c2",
-      author: "Mina Sol",
-      avatar: "sunrise",
-      time: "1h ago",
-      text: "Try speed drills: 30 seconds to answer a prompt, 10 seconds to reset.",
-    },
-  ];
+  const currentName = profile.nickname || "Member";
+  const [threads, setThreads] = useState([]);
+  const [selectedThread, setSelectedThread] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [newThread, setNewThread] = useState({ title: "", body: "" });
+  const [newComment, setNewComment] = useState("");
+  const [loadingThreads, setLoadingThreads] = useState(false);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [error, setError] = useState("");
+
+  const fetchThreads = async () => {
+    if (!slug) {
+      return;
+    }
+    setLoadingThreads(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/threads?groupSlug=${slug}`);
+      if (!response.ok) {
+        throw new Error("Failed to load threads");
+      }
+      const data = await response.json();
+      setThreads(data.threads || []);
+    } catch (err) {
+      setError("Unable to load threads.");
+    } finally {
+      setLoadingThreads(false);
+    }
+  };
+
+  const fetchComments = async (threadId) => {
+    if (!threadId) {
+      setComments([]);
+      return;
+    }
+    setLoadingComments(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/comments?threadId=${threadId}`);
+      if (!response.ok) {
+        throw new Error("Failed to load comments");
+      }
+      const data = await response.json();
+      setComments(data.comments || []);
+    } catch (err) {
+      setError("Unable to load comments.");
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchThreads();
+  }, [slug]);
+
+  useEffect(() => {
+    if (selectedThread?.id) {
+      fetchComments(selectedThread.id);
+    }
+  }, [selectedThread?.id]);
+
+  const handleCreateThread = async () => {
+    if (!newThread.title.trim()) {
+      setError("Thread title is required.");
+      return;
+    }
+    setError("");
+    const response = await fetch("/api/threads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newThread.title,
+        groupSlug: slug,
+        authorName: currentName,
+        authorAvatar: currentAvatar,
+        body: newThread.body,
+      }),
+    });
+    if (!response.ok) {
+      setError("Unable to post thread.");
+      return;
+    }
+    setNewThread({ title: "", body: "" });
+    fetchThreads();
+  };
+
+  const handleCreateComment = async () => {
+    if (!selectedThread?.id || !newComment.trim()) {
+      return;
+    }
+    setError("");
+    const response = await fetch("/api/comments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        threadId: selectedThread.id,
+        authorName: currentName,
+        authorAvatar: currentAvatar,
+        body: newComment,
+      }),
+    });
+    if (!response.ok) {
+      setError("Unable to post comment.");
+      return;
+    }
+    setNewComment("");
+    fetchComments(selectedThread.id);
+  };
 
   return (
     <>
@@ -216,26 +280,52 @@ export default function GroupDetailPage() {
                 <p className="eyebrow">Group discussion</p>
                 <h2>Threads</h2>
               </div>
-              <Link className="cta small" href="/signin">
-                Start a thread
-              </Link>
+              <button className="cta small" type="button" onClick={handleCreateThread}>
+                Post thread
+              </button>
             </div>
+            <div className="thread-editor">
+              <input
+                type="text"
+                placeholder="Thread title"
+                value={newThread.title}
+                onChange={(event) => setNewThread({ ...newThread, title: event.target.value })}
+              />
+              <textarea
+                rows={3}
+                placeholder="Start the discussion..."
+                value={newThread.body}
+                onChange={(event) => setNewThread({ ...newThread, body: event.target.value })}
+              />
+            </div>
+            {error ? <p className="label">{error}</p> : null}
+            {loadingThreads ? <p className="label">Loading threads...</p> : null}
             <div className="thread-list">
-              {threadSamples.map((thread) => (
+              {threads.length === 0 ? (
+                <p className="label">No threads yet. Be the first to start one.</p>
+              ) : null}
+              {threads.map((thread) => (
                 <div key={thread.id} className="thread-item">
                   <img
                     className="thread-avatar"
-                    src={`/avatars/${thread.avatar}.svg`}
-                    alt={`${thread.author} avatar`}
+                    src={`/avatars/${thread.authorAvatar}.svg`}
+                    alt={`${thread.authorName} avatar`}
                   />
                   <div>
                     <h3>{thread.title}</h3>
                     <p className="thread-meta">
-                      {thread.author} · {thread.time} · {thread.replies} replies
+                      {thread.authorName} ·{" "}
+                      {thread.createdAt
+                        ? new Date(thread.createdAt).toLocaleDateString()
+                        : "Just now"}
                     </p>
-                    <p className="thread-preview">{thread.preview}</p>
+                    <p className="thread-preview">{thread.body || "Open the thread to reply."}</p>
                   </div>
-                  <button className="cta ghost small" type="button">
+                  <button
+                    className="cta ghost small"
+                    type="button"
+                    onClick={() => setSelectedThread(thread)}
+                  >
                     Open
                   </button>
                 </div>
@@ -257,26 +347,48 @@ export default function GroupDetailPage() {
                 alt="Your avatar"
               />
               <div className="comment-input">
-                <p className="label">Reply as {profile.nickname || "Member"}</p>
-                <textarea rows={3} placeholder="Share your insight..." />
-                <button className="cta small" type="button">
+                <p className="label">Reply as {currentName}</p>
+                <textarea
+                  rows={3}
+                  placeholder={
+                    selectedThread ? "Share your insight..." : "Select a thread to reply."
+                  }
+                  value={newComment}
+                  onChange={(event) => setNewComment(event.target.value)}
+                />
+                <button
+                  className="cta small"
+                  type="button"
+                  onClick={handleCreateComment}
+                  disabled={!selectedThread}
+                >
                   Post reply
                 </button>
               </div>
             </div>
             <div className="comment-list">
-              {commentSamples.map((comment) => (
+              {loadingComments ? <p className="label">Loading comments...</p> : null}
+              {selectedThread ? null : (
+                <p className="label">Select a thread to see comments.</p>
+              )}
+              {comments.map((comment) => (
                 <div key={comment.id} className="comment-item">
                   <img
                     className="comment-avatar"
-                    src={`/avatars/${comment.avatar}.svg`}
-                    alt={`${comment.author} avatar`}
+                    src={`/avatars/${comment.authorAvatar}.svg`}
+                    alt={`${comment.authorName} avatar`}
                   />
                   <div>
                     <p className="thread-meta">
-                      {comment.author} · {comment.time}
+                      {comment.authorName} ·{" "}
+                      {comment.createdAt
+                        ? new Date(comment.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "Just now"}
                     </p>
-                    <p className="thread-preview">{comment.text}</p>
+                    <p className="thread-preview">{comment.body}</p>
                   </div>
                 </div>
               ))}

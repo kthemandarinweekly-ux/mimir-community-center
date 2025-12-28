@@ -391,6 +391,22 @@ p {
   font-size: 0.95rem;
 }
 
+.thread-editor {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.thread-editor input,
+.thread-editor textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
 .comment-list {
   display: grid;
   gap: 14px;
