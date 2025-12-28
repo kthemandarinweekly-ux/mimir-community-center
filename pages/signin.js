@@ -51,10 +51,10 @@ export default function SignInPage() {
             </div>
           </div>
           <div className="nav-links">
-            <Link href="/#groups">Groups</Link>
-            <Link href="/#calendar">Calendar</Link>
-            <Link href="/#announcements">Announcements</Link>
-            <Link href="/#events">Competitions</Link>
+            <Link href="/groups">Groups</Link>
+            <Link href="/calendar">Calendar</Link>
+            <Link href="/announcements">Announcements</Link>
+            <Link href="/competitions">Competitions</Link>
           </div>
           <Link className="cta ghost" href="/">
             Back home

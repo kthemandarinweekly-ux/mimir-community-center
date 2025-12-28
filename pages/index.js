@@ -43,10 +43,10 @@ export default function Home() {
             </div>
           </div>
           <div className="nav-links">
-            <a href="#groups">Groups</a>
-            <a href="#calendar">Calendar</a>
-            <a href="#announcements">Announcements</a>
-            <a href="#events">Competitions</a>
+            <Link href="/groups">Groups</Link>
+            <Link href="/calendar">Calendar</Link>
+            <Link href="/announcements">Announcements</Link>
+            <Link href="/competitions">Competitions</Link>
           </div>
           <Link className="cta ghost" href="/signin">
             Sign in
@@ -62,12 +62,12 @@ export default function Home() {
               for seasonal debate competitions.
             </p>
             <div className="hero-actions">
-              <button className="cta" type="button">
+              <Link className="cta" href="/groups">
                 Join the community
-              </button>
-              <button className="cta ghost" type="button">
+              </Link>
+              <Link className="cta ghost" href="/calendar">
                 Explore the calendar
-              </button>
+              </Link>
             </div>
             <div className="hero-meta">
               <div>
@@ -99,9 +99,9 @@ export default function Home() {
                 <p className="label">Live kickoff</p>
                 <p className="value">May 18 · Online</p>
               </div>
-              <button className="cta small" type="button">
+              <Link className="cta small" href="/competitions">
                 Apply for the season
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -229,9 +229,9 @@ export default function Home() {
           <div className="calendar">
             <div className="calendar-header">
               <h3>May 2025</h3>
-              <button className="cta ghost small" type="button">
+              <Link className="cta ghost small" href="/calendar">
                 View full calendar
-              </button>
+              </Link>
             </div>
             <div className="calendar-grid">
               <div className="calendar-item">
@@ -271,18 +271,18 @@ export default function Home() {
                 <h4>New topic pack: Climate migration</h4>
                 <p>Chinese + English tracks · vocabulary &amp; readings available.</p>
               </div>
-              <button className="cta small" type="button">
+              <Link className="cta small" href="/announcements">
                 View pack
-              </button>
+              </Link>
             </div>
             <div className="notice">
               <div>
                 <h4>Mentor office hours</h4>
                 <p>Spanish advanced · Fridays at 18:00 CET.</p>
               </div>
-              <button className="cta small" type="button">
+              <Link className="cta small" href="/announcements">
                 Book a slot
-              </button>
+              </Link>
             </div>
           </div>
           <div className="notification-panel">
@@ -315,9 +315,9 @@ export default function Home() {
                 <h3>International friendly match</h3>
                 <p>Pair with a partner from another language track.</p>
               </div>
-              <button className="cta small" type="button">
+              <Link className="cta small" href="/competitions">
                 Apply
-              </button>
+              </Link>
             </article>
             <article className="event-card">
               <div>
@@ -325,9 +325,9 @@ export default function Home() {
                 <h3>Regional language showcase</h3>
                 <p>Compete within your cohort for mentoring credits.</p>
               </div>
-              <button className="cta small" type="button">
+              <Link className="cta small" href="/competitions">
                 Apply
-              </button>
+              </Link>
             </article>
             <article className="event-card">
               <div>
@@ -335,9 +335,9 @@ export default function Home() {
                 <h3>Global debate summit</h3>
                 <p>Top teams present to community and guest judges.</p>
               </div>
-              <button className="cta small" type="button">
+              <Link className="cta small" href="/competitions">
                 Apply
-              </button>
+              </Link>
             </article>
           </div>
         </section>
@@ -351,12 +351,12 @@ export default function Home() {
             </p>
           </div>
           <div className="cta-actions">
-            <button className="cta" type="button">
+            <Link className="cta" href="/groups">
               Join for free
-            </button>
-            <button className="cta ghost" type="button">
+            </Link>
+            <Link className="cta ghost" href="/signin">
               Schedule a tour
-            </button>
+            </Link>
           </div>
         </section>
       </main>
