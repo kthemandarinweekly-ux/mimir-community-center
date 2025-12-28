@@ -105,6 +105,20 @@ p {
   color: var(--moss);
 }
 
+.nav-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);

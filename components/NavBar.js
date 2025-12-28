@@ -9,6 +9,9 @@ export default function NavBar({ action }) {
   const nickname = profile.nickname?.trim();
   const actionHref = action?.href || (session ? "/account" : "/signin");
   const actionLabel = action?.label || (session ? nickname || userLabel : "Sign in");
+  const avatarSrc = profile.avatar
+    ? `/avatars/${profile.avatar}.svg`
+    : session?.user?.image || "/avatars/sunrise.svg";
   const actionClass = action?.className || "cta ghost";
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",") || [];
   const isAdmin = adminEmails.includes(session?.user?.email || "");
@@ -29,7 +32,8 @@ export default function NavBar({ action }) {
         <Link href="/competitions">Competitions</Link>
         {isAdmin ? <Link href="/admin">Admin</Link> : null}
       </div>
-      <Link className={actionClass} href={actionHref}>
+      <Link className={`${actionClass} nav-account`} href={actionHref}>
+        {session ? <img className="nav-avatar" src={avatarSrc} alt="User avatar" /> : null}
         {actionLabel}
       </Link>
     </nav>
