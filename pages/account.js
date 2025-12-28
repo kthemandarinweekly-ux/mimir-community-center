@@ -1,11 +1,25 @@
 import Head from "next/head";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 import NavBar from "../components/NavBar";
 
 export default function AccountPage() {
   const { data: session, status } = useSession();
-  const displayName = session?.user?.name || session?.user?.email || "Member";
+  const defaultName = session?.user?.name || session?.user?.email || "Member";
+  const [nickname, setNickname] = useState("");
+  const [avatarChoice, setAvatarChoice] = useState("sunrise");
+  const displayName = nickname || defaultName;
+  const avatarOptions = useMemo(
+    () => [
+      { id: "sunrise", label: "Sunrise" },
+      { id: "berry", label: "Berry" },
+      { id: "plum", label: "Plum" },
+      { id: "mint", label: "Mint" },
+      { id: "ember", label: "Ember" },
+    ],
+    []
+  );
 
   return (
     <>
@@ -86,6 +100,47 @@ export default function AccountPage() {
               </p>
             </div>
             <div className="account-grid">
+              <article className="account-card profile-card">
+                <h3>Profile settings</h3>
+                <div className="profile-preview">
+                  <div className={`avatar avatar-${avatarChoice}`} aria-hidden="true">
+                    {displayName.slice(0, 1).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="label">Display name</p>
+                    <p className="value">{displayName}</p>
+                  </div>
+                </div>
+                <label className="profile-field">
+                  Nickname
+                  <input
+                    type="text"
+                    placeholder="Add a nickname"
+                    value={nickname}
+                    onChange={(event) => setNickname(event.target.value)}
+                  />
+                </label>
+                <div className="avatar-grid">
+                  {avatarOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={`avatar-option ${
+                        avatarChoice === option.id ? "selected" : ""
+                      }`}
+                      onClick={() => setAvatarChoice(option.id)}
+                    >
+                      <span className={`avatar avatar-${option.id}`} aria-hidden="true">
+                        {displayName.slice(0, 1).toUpperCase()}
+                      </span>
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <button className="cta small" type="button">
+                  Save changes
+                </button>
+              </article>
               <article className="account-card">
                 <h3>Groups you joined</h3>
                 <ul className="list">

@@ -7,6 +7,8 @@ export default function NavBar({ action }) {
   const actionHref = action?.href || (session ? "/account" : "/signin");
   const actionLabel = action?.label || (session ? userLabel : "Sign in");
   const actionClass = action?.className || "cta ghost";
+  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",") || [];
+  const isAdmin = adminEmails.includes(session?.user?.email || "");
 
   return (
     <nav className="nav">
@@ -22,6 +24,7 @@ export default function NavBar({ action }) {
         <Link href="/calendar">Calendar</Link>
         <Link href="/announcements">Announcements</Link>
         <Link href="/competitions">Competitions</Link>
+        {isAdmin ? <Link href="/admin">Admin</Link> : null}
       </div>
       <Link className={actionClass} href={actionHref}>
         {actionLabel}
