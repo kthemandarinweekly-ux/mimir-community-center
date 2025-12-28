@@ -52,7 +52,14 @@ export default function AccountPage() {
         <section className="hero account-hero">
           <div className="hero-copy">
             <p className="eyebrow">User center</p>
-            <h1>{displayName}</h1>
+            <div className="name-row">
+              <img
+                className="name-avatar"
+                src={`/avatars/${avatarChoice}.svg`}
+                alt="User avatar"
+              />
+              <h1>{displayName}</h1>
+            </div>
             <p className="lead">
               Manage your groups, track calendar reminders, and stay on top of the competitions
               you follow.
