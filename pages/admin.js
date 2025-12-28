@@ -1,32 +1,108 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import NavBar from "../components/NavBar";
-
-const users = [
-  { name: "Ariana Chen", email: "ariana@example.com", group: "Adv English" },
-  { name: "Luis Ortega", email: "luis@example.com", group: "Int Spanish" },
-  { name: "Mei Tan", email: "mei@example.com", group: "Adv Chinese" },
-];
-
-const events = [
-  {
-    title: "Debate structure essentials",
-    date: "May 02",
-    link: "https://zoom.us/class-101",
-  },
-  { title: "Rebuttal toolkit", date: "May 12", link: "https://zoom.us/class-202" },
-];
-
-const competitions = [
-  { title: "International friendly match", link: "https://forms.gle/apply1" },
-  { title: "Regional language showcase", link: "https://forms.gle/apply2" },
-];
 
 export default function AdminPage() {
   const { data: session } = useSession();
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",") || [];
   const isAdmin = adminEmails.includes(session?.user?.email || "");
+  const [events, setEvents] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [drafts, setDrafts] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    title: "",
+    type: "Class",
+    start: "",
+    end: "",
+    description: "",
+    location: "",
+    link: "",
+  });
+
+  const loadData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [eventsRes, membersRes] = await Promise.all([
+        fetch("/api/events"),
+        fetch("/api/members"),
+      ]);
+      if (eventsRes.ok) {
+        const eventsData = await eventsRes.json();
+        setEvents(eventsData.events || []);
+      }
+      if (membersRes.ok) {
+        const membersData = await membersRes.json();
+        setMembers(membersData.members || []);
+      }
+    } catch (err) {
+      setError("Unable to load admin data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadData();
+    }
+  }, [isAdmin]);
+
+  const handleCreate = async () => {
+    if (!form.title || !form.start) {
+      setError("Title and start date are required.");
+      return;
+    }
+    setError("");
+    const response = await fetch("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    if (!response.ok) {
+      setError("Unable to create event.");
+      return;
+    }
+    setForm({
+      title: "",
+      type: "Class",
+      start: "",
+      end: "",
+      description: "",
+      location: "",
+      link: "",
+    });
+    loadData();
+  };
+
+  const handleUpdate = async (eventId) => {
+    const draft = drafts[eventId] || {};
+    const response = await fetch(`/api/events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(draft),
+    });
+    if (!response.ok) {
+      setError("Unable to update event.");
+      return;
+    }
+    loadData();
+  };
+
+  const setDraftField = (eventId, field, value) => {
+    setDrafts((prev) => ({
+      ...prev,
+      [eventId]: {
+        ...events.find((item) => item.id === eventId),
+        ...prev[eventId],
+        [field]: value,
+      },
+    }));
+  };
 
   return (
     <>
@@ -68,58 +144,123 @@ export default function AdminPage() {
           <>
             <section className="admin-card">
               <h2>Members</h2>
+              {loading ? <p className="label">Loading members...</p> : null}
               <div className="admin-table">
                 <div className="admin-row admin-head">
                   <span>Name</span>
                   <span>Email</span>
                   <span>Primary group</span>
                 </div>
-                {users.map((user) => (
-                  <div key={user.email} className="admin-row">
-                    <span>{user.name}</span>
-                    <span>{user.email}</span>
-                    <span>{user.group}</span>
+                {members.length === 0 ? (
+                  <div className="admin-row">
+                    <span>Set up Airtable Members table</span>
+                    <span>members@example.com</span>
+                    <span>Intermediate English</span>
                   </div>
-                ))}
+                ) : (
+                  members.map((user) => (
+                    <div key={user.email} className="admin-row">
+                      <span>{user.name}</span>
+                      <span>{user.email}</span>
+                      <span>{user.group}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </section>
 
             <section className="admin-card">
-              <h2>Upcoming events</h2>
+              <h2>Calendar events</h2>
+              {error ? <p className="label">{error}</p> : null}
+              <div className="admin-event editor">
+                <div>
+                  <h3>New event</h3>
+                  <p className="label">Add a class, debate prep, or competition</p>
+                </div>
+                <div className="admin-form">
+                  <input
+                    type="text"
+                    placeholder="Title"
+                    value={form.title}
+                    onChange={(event) => setForm({ ...form, title: event.target.value })}
+                  />
+                  <select
+                    value={form.type}
+                    onChange={(event) => setForm({ ...form, type: event.target.value })}
+                  >
+                    <option value="Class">Class</option>
+                    <option value="Debate Prep">Debate Prep</option>
+                    <option value="Competition">Competition</option>
+                  </select>
+                  <input
+                    type="datetime-local"
+                    value={form.start}
+                    onChange={(event) => setForm({ ...form, start: event.target.value })}
+                  />
+                  <input
+                    type="datetime-local"
+                    value={form.end}
+                    onChange={(event) => setForm({ ...form, end: event.target.value })}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Location (optional)"
+                    value={form.location}
+                    onChange={(event) => setForm({ ...form, location: event.target.value })}
+                  />
+                  <input
+                    type="url"
+                    placeholder="Event link (optional)"
+                    value={form.link}
+                    onChange={(event) => setForm({ ...form, link: event.target.value })}
+                  />
+                  <textarea
+                    rows={3}
+                    placeholder="Short description (optional)"
+                    value={form.description}
+                    onChange={(event) => setForm({ ...form, description: event.target.value })}
+                  />
+                  <button className="cta small" type="button" onClick={handleCreate}>
+                    Publish event
+                  </button>
+                </div>
+              </div>
               {events.map((event) => (
-                <div key={event.title} className="admin-event">
+                <div key={event.id} className="admin-event">
                   <div>
-                    <h3>{event.title}</h3>
-                    <p className="label">{event.date}</p>
+                    <input
+                      type="text"
+                      defaultValue={event.title}
+                      onChange={(evt) => setDraftField(event.id, "title", evt.target.value)}
+                    />
+                    <p className="label">Event title</p>
                   </div>
-                  <input type="url" defaultValue={event.link} />
-                  <button className="cta small" type="button">
+                  <div className="admin-form inline">
+                    <select
+                      defaultValue={event.type}
+                      onChange={(evt) => setDraftField(event.id, "type", evt.target.value)}
+                    >
+                      <option value="Class">Class</option>
+                      <option value="Debate Prep">Debate Prep</option>
+                      <option value="Competition">Competition</option>
+                    </select>
+                    <input
+                      type="datetime-local"
+                      defaultValue={event.start ? event.start.slice(0, 16) : ""}
+                      onChange={(evt) => setDraftField(event.id, "start", evt.target.value)}
+                    />
+                    <input
+                      type="url"
+                      placeholder="Event link"
+                      defaultValue={event.link}
+                      onChange={(evt) => setDraftField(event.id, "link", evt.target.value)}
+                    />
+                  </div>
+                  <button className="cta small" type="button" onClick={() => handleUpdate(event.id)}>
                     Save
                   </button>
                 </div>
               ))}
-              <button className="cta ghost small" type="button">
-                Add new event
-              </button>
-            </section>
-
-            <section className="admin-card">
-              <h2>Competition links</h2>
-              {competitions.map((comp) => (
-                <div key={comp.title} className="admin-event">
-                  <div>
-                    <h3>{comp.title}</h3>
-                    <p className="label">Application link</p>
-                  </div>
-                  <input type="url" defaultValue={comp.link} />
-                  <button className="cta small" type="button">
-                    Save
-                  </button>
-                </div>
-              ))}
-              <button className="cta ghost small" type="button">
-                Add competition
-              </button>
             </section>
           </>
         )}

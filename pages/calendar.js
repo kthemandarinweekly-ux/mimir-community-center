@@ -1,8 +1,85 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import NavBar from "../components/NavBar";
 
+const EVENT_TYPES = ["Class", "Debate Prep", "Competition"];
+
+function startOfMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function endOfMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
+function buildCalendarGrid(currentDate) {
+  const start = startOfMonth(currentDate);
+  const end = endOfMonth(currentDate);
+  const startWeekday = start.getDay();
+  const totalDays = end.getDate();
+  const days = [];
+
+  for (let i = 0; i < startWeekday; i += 1) {
+    days.push(null);
+  }
+
+  for (let day = 1; day <= totalDays; day += 1) {
+    days.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
+  }
+
+  return days;
+}
+
 export default function CalendarPage() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const monthLabel = currentDate.toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
+
+  useEffect(() => {
+    const loadEvents = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch("/api/events");
+        if (!response.ok) {
+          throw new Error("Failed to load events");
+        }
+        const data = await response.json();
+        setEvents(data.events || []);
+      } catch (err) {
+        setError("Unable to load calendar events.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEvents();
+  }, []);
+
+  const days = useMemo(() => buildCalendarGrid(currentDate), [currentDate]);
+  const eventsByDate = useMemo(() => {
+    const map = new Map();
+    events.forEach((event) => {
+      if (!event.start) {
+        return;
+      }
+      const dateKey = new Date(event.start).toDateString();
+      if (!map.has(dateKey)) {
+        map.set(dateKey, []);
+      }
+      map.get(dateKey).push(event);
+    });
+    return map;
+  }, [events]);
+
   return (
     <>
       <Head>
@@ -10,7 +87,7 @@ export default function CalendarPage() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Nunito:wght;400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </Head>
@@ -20,7 +97,7 @@ export default function CalendarPage() {
         <section className="hero">
           <div className="hero-copy">
             <p className="eyebrow">Community schedule</p>
-            <h1>Calendar of classes &amp; debate prep</h1>
+            <h1>Calendar of classes and debate prep</h1>
             <p className="lead">
               Stay ahead with a clear weekly rhythm. Admins post free sessions, topical
               discussions, and competition milestones.
@@ -61,88 +138,144 @@ export default function CalendarPage() {
         <section className="section">
           <div className="section-head">
             <div>
-              <p className="eyebrow">May 2025</p>
-              <h2>Featured classes</h2>
+              <p className="eyebrow">Month view</p>
+              <h2>Community calendar</h2>
             </div>
             <p className="section-sub">
               All events are free. RSVP to get reminders and prep materials delivered.
             </p>
           </div>
-          <div className="calendar">
-            <div className="calendar-header">
-              <h3>Week 1</h3>
-              <Link className="cta ghost small" href="/signin">
-                RSVP for week
-              </Link>
+          <div className="calendar-grid-wrap">
+            <div className="calendar-toolbar">
+              <button
+                className="cta ghost small"
+                type="button"
+                onClick={() =>
+                  setCurrentDate(
+                    new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+                  )
+                }
+              >
+                Previous
+              </button>
+              <div>
+                <h3>{monthLabel}</h3>
+                <p className="label">Classes, debate prep, competitions</p>
+              </div>
+              <button
+                className="cta ghost small"
+                type="button"
+                onClick={() =>
+                  setCurrentDate(
+                    new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+                  )
+                }
+              >
+                Next
+              </button>
             </div>
-            <div className="calendar-grid">
-              <Link className="calendar-item" href="/calendar/debate-structure-essentials">
-                <p className="label">May 02 · Live class</p>
-                <h4>Debate structure essentials</h4>
-                <p>All levels · 60 mins</p>
-              </Link>
-              <Link className="calendar-item" href="/calendar/opening-statements-clinic">
-                <p className="label">May 03 · Speaking lab</p>
-                <h4>Opening statements clinic</h4>
-                <p>Intermediate cohorts</p>
-              </Link>
-              <Link className="calendar-item" href="/calendar/mentor-office-hours">
-                <p className="label">May 04 · Office hours</p>
-                <h4>Mentor Q&amp;A</h4>
-                <p>Advanced cohorts</p>
-              </Link>
-              <Link className="calendar-item" href="/calendar/global-perspective-circle">
-                <p className="label">May 05 · Community circle</p>
-                <h4>Global perspective exchange</h4>
-                <p>All members · 45 mins</p>
-              </Link>
+            {error ? <p className="label">{error}</p> : null}
+            {loading ? <p className="label">Loading events...</p> : null}
+            <div className="calendar-grid-month">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div key={day} className="calendar-weekday">
+                  {day}
+                </div>
+              ))}
+              {days.map((day, index) => {
+                if (!day) {
+                  return <div key={`empty-${index}`} className="calendar-cell empty" />;
+                }
+                const dayKey = day.toDateString();
+                const dayEvents = eventsByDate.get(dayKey) || [];
+                return (
+                  <div key={dayKey} className="calendar-cell">
+                    <span className="calendar-date">{day.getDate()}</span>
+                    <div className="calendar-events">
+                      {dayEvents.slice(0, 3).map((event) => {
+                        const typeClass = EVENT_TYPES.includes(event.type)
+                          ? event.type.toLowerCase().replace(" ", "-")
+                          : "class";
+                        return (
+                          <button
+                            key={event.id}
+                            type="button"
+                            className={`calendar-event ${typeClass}`}
+                            onClick={() => setSelectedEvent(event)}
+                          >
+                            {event.title}
+                          </button>
+                        );
+                      })}
+                      {dayEvents.length > 3 ? (
+                        <span className="label">+{dayEvents.length - 3} more</span>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
 
-        <section className="section highlight">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">Upcoming</p>
-              <h2>Competition milestones</h2>
+        {selectedEvent ? (
+          <section className="section detail-layout">
+            <div className="detail-main">
+              <div className="detail-section">
+                <p className="eyebrow">{selectedEvent.type}</p>
+                <h2>{selectedEvent.title}</h2>
+                <p className="lead">{selectedEvent.description || "Event details."}</p>
+                <div className="detail-actions">
+                  <Link className="cta" href="/signin">
+                    RSVP for this event
+                  </Link>
+                  {selectedEvent.link ? (
+                    <Link className="cta ghost" href={selectedEvent.link}>
+                      Open link
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
             </div>
-            <p className="section-sub">
-              The seasonal debate builds each week. Track key dates and prep deadlines.
-            </p>
-          </div>
-          <div className="events-grid">
-            <article className="event-card">
-              <div>
-                <p className="label">May 12</p>
-                <h3>Motion briefing released</h3>
-                <p>Topic packets + glossary shared in all groups.</p>
+            <aside className="detail-side">
+              <div className="side-card">
+                <h3>Event details</h3>
+                <div className="stat-grid">
+                  <div>
+                    <p className="label">Date</p>
+                    <p className="value">
+                      {selectedEvent.start
+                        ? new Date(selectedEvent.start).toLocaleDateString()
+                        : "TBD"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="label">Time</p>
+                    <p className="value">
+                      {selectedEvent.start
+                        ? new Date(selectedEvent.start).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "TBD"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="label">Location</p>
+                    <p className="value">{selectedEvent.location || "Online"}</p>
+                  </div>
+                </div>
+                <button
+                  className="cta ghost small"
+                  type="button"
+                  onClick={() => setSelectedEvent(null)}
+                >
+                  Close
+                </button>
               </div>
-              <Link className="cta small" href="/announcements">
-                View briefing
-              </Link>
-            </article>
-            <article className="event-card">
-              <div>
-                <p className="label">May 18</p>
-                <h3>Season kickoff</h3>
-                <p>Live session with judges and coaching partners.</p>
-              </div>
-              <Link className="cta small" href="/competitions">
-                Join kickoff
-              </Link>
-            </article>
-            <article className="event-card">
-              <div>
-                <p className="label">June 02</p>
-                <h3>Round submissions due</h3>
-                <p>Submit your team lineup and preferred time zone.</p>
-              </div>
-              <Link className="cta small" href="/competitions">
-                Apply now
-              </Link>
-            </article>
-          </div>
-        </section>
+            </aside>
+          </section>
+        ) : null}
       </main>
 
       <footer className="footer">
