@@ -1,11 +1,11 @@
 :root {
   color-scheme: light;
-  --cream: #f5f5f7;
-  --sand: #e9e9ee;
-  --ink: #1b1b1f;
-  --ink-soft: #55545b;
-  --moss: #6f5cff;
-  --terracotta: #ef6b6b;
+  --cream: #ffffff;
+  --sand: #f2f2f6;
+  --ink: #4a4a4a;
+  --ink-soft: #6a6a6a;
+  --moss: #7a5cff;
+  --terracotta: #d94b6a;
   --sun: #f4a24d;
   --fog: rgba(255, 255, 255, 0.75);
   --shadow: 0 18px 40px rgba(30, 30, 38, 0.08);
@@ -19,7 +19,7 @@
 
 body {
   margin: 0;
-  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-family: "Nunito", "Segoe UI", sans-serif;
   color: var(--ink);
   background: var(--cream);
   min-height: 100vh;
@@ -34,7 +34,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: "Fraunces", "Times New Roman", serif;
+  font-family: "Nunito", "Segoe UI", sans-serif;
   margin: 0 0 12px;
 }
 
@@ -144,11 +144,11 @@ p {
   padding: 12px 22px;
   border-radius: 999px;
   font-weight: 600;
-  background: var(--moss);
+  background: var(--terracotta);
   color: white;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 12px 24px rgba(111, 92, 255, 0.2);
+  box-shadow: 0 12px 24px rgba(217, 75, 106, 0.2);
 }
 
 .cta:hover {
@@ -202,8 +202,8 @@ p {
   display: inline-flex;
   padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(111, 92, 255, 0.15);
-  color: var(--moss);
+  background: rgba(217, 75, 106, 0.12);
+  color: var(--terracotta);
   font-size: 12px;
   font-weight: 600;
   margin-bottom: 18px;
@@ -409,7 +409,7 @@ p {
 }
 
 .highlight {
-  background: #f0f0f4;
+  background: #f7f6fb;
 }
 
 .flow {
@@ -530,7 +530,7 @@ p {
   justify-content: space-between;
   gap: 16px;
   box-shadow: var(--shadow);
-  border-top: 3px solid rgba(244, 162, 77, 0.6);
+  border-top: 3px solid rgba(122, 92, 255, 0.6);
 }
 
 .cta-section {
