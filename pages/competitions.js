@@ -104,9 +104,14 @@ export default function CompetitionsPage() {
                 <h3>International friendly match</h3>
                 <p>Pair with a partner from another language track.</p>
               </div>
-              <Link className="cta small" href="/signin">
-                Apply
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/competitions/international-friendly-match">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Apply
+                </Link>
+              </div>
             </article>
             <article className="event-card">
               <div>
@@ -114,9 +119,14 @@ export default function CompetitionsPage() {
                 <h3>Regional language showcase</h3>
                 <p>Compete within your cohort for mentoring credits.</p>
               </div>
-              <Link className="cta small" href="/signin">
-                Apply
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/competitions/regional-language-showcase">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Apply
+                </Link>
+              </div>
             </article>
             <article className="event-card">
               <div>
@@ -124,9 +134,14 @@ export default function CompetitionsPage() {
                 <h3>Global debate summit</h3>
                 <p>Top teams present to community and guest judges.</p>
               </div>
-              <Link className="cta small" href="/signin">
-                Apply
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/competitions/global-debate-summit">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Apply
+                </Link>
+              </div>
             </article>
           </div>
         </section>

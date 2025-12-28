@@ -11,7 +11,7 @@ export default function NavBar({ action }) {
   return (
     <nav className="nav">
       <Link className="logo" href="/">
-        <span className="logo-mark">M</span>
+        <img className="logo-image" src="/logo.png" alt="Mimir penguin logo" />
         <div>
           <p className="logo-name">Mimir</p>
           <p className="logo-tag">Community Center</p>

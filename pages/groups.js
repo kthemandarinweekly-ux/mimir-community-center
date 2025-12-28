@@ -77,9 +77,14 @@ export default function GroupsPage() {
                 <span>Weekly clinics</span>
                 <span>Peer speaking pods</span>
               </div>
-              <Link className="cta small" href="/signin">
-                Join group
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/groups/intermediate-chinese">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Join
+                </Link>
+              </div>
             </article>
             <article className="group-card">
               <h3>Advanced Chinese</h3>
@@ -88,9 +93,14 @@ export default function GroupsPage() {
                 <span>Advanced discourse</span>
                 <span>Judge feedback</span>
               </div>
-              <Link className="cta small" href="/signin">
-                Join group
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/groups/advanced-chinese">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Join
+                </Link>
+              </div>
             </article>
           </div>
         </section>
@@ -114,9 +124,14 @@ export default function GroupsPage() {
                 <span>Conversation ladders</span>
                 <span>Media watchlists</span>
               </div>
-              <Link className="cta small" href="/signin">
-                Join group
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/groups/intermediate-spanish">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Join
+                </Link>
+              </div>
             </article>
             <article className="group-card">
               <h3>Advanced Spanish</h3>
@@ -125,9 +140,14 @@ export default function GroupsPage() {
                 <span>Expert mentor hours</span>
                 <span>Style workshops</span>
               </div>
-              <Link className="cta small" href="/signin">
-                Join group
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/groups/advanced-spanish">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Join
+                </Link>
+              </div>
             </article>
           </div>
         </section>
@@ -151,9 +171,14 @@ export default function GroupsPage() {
                 <span>Discussion circles</span>
                 <span>Vocabulary labs</span>
               </div>
-              <Link className="cta small" href="/signin">
-                Join group
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/groups/intermediate-english">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Join
+                </Link>
+              </div>
             </article>
             <article className="group-card">
               <h3>Advanced English</h3>
@@ -162,9 +187,14 @@ export default function GroupsPage() {
                 <span>Live critiques</span>
                 <span>Argument polish</span>
               </div>
-              <Link className="cta small" href="/signin">
-                Join group
-              </Link>
+              <div className="card-actions">
+                <Link className="cta small" href="/groups/advanced-english">
+                  View details
+                </Link>
+                <Link className="cta ghost small" href="/signin">
+                  Join
+                </Link>
+              </div>
             </article>
           </div>
         </section>

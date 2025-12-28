@@ -76,26 +76,26 @@ export default function CalendarPage() {
               </Link>
             </div>
             <div className="calendar-grid">
-              <div className="calendar-item">
+              <Link className="calendar-item" href="/calendar/debate-structure-essentials">
                 <p className="label">May 02 · Live class</p>
                 <h4>Debate structure essentials</h4>
                 <p>All levels · 60 mins</p>
-              </div>
-              <div className="calendar-item">
+              </Link>
+              <Link className="calendar-item" href="/calendar/opening-statements-clinic">
                 <p className="label">May 03 · Speaking lab</p>
                 <h4>Opening statements clinic</h4>
                 <p>Intermediate cohorts</p>
-              </div>
-              <div className="calendar-item">
+              </Link>
+              <Link className="calendar-item" href="/calendar/mentor-office-hours">
                 <p className="label">May 04 · Office hours</p>
                 <h4>Mentor Q&amp;A</h4>
                 <p>Advanced cohorts</p>
-              </div>
-              <div className="calendar-item">
+              </Link>
+              <Link className="calendar-item" href="/calendar/global-perspective-circle">
                 <p className="label">May 05 · Community circle</p>
                 <h4>Global perspective exchange</h4>
                 <p>All members · 45 mins</p>
-              </div>
+              </Link>
             </div>
           </div>
         </section>
