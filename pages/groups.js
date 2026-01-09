@@ -1,217 +1,123 @@
 import Head from "next/head";
 import Link from "next/link";
-import NavBar from "../components/NavBar";
+import LevelPlacementModal from "../components/LevelPlacementModal";
+
+const groups = [
+  {
+    slug: "intermediate-english",
+    name: "Intermediate English",
+    level: "Intermediate",
+    language: "English",
+    description: "Strengthen daily fluency and clear explanations with guided prompts.",
+  },
+  {
+    slug: "advanced-english",
+    name: "Advanced English",
+    level: "Advanced",
+    language: "English",
+    description: "Sharpen nuance, tone, and persuasive speaking for complex topics.",
+  },
+  {
+    slug: "intermediate-spanish",
+    name: "Intermediate Spanish",
+    level: "Intermediate",
+    language: "Spanish",
+    description: "Build confidence through real conversations and structured practice.",
+  },
+  {
+    slug: "advanced-spanish",
+    name: "Advanced Spanish",
+    level: "Advanced",
+    language: "Spanish",
+    description: "Develop fast rebuttals, richer vocabulary, and confident expression.",
+  },
+  {
+    slug: "intermediate-chinese",
+    name: "Intermediate Chinese",
+    level: "Intermediate",
+    language: "Chinese",
+    description: "Practice clear opinions and everyday discussion in Mandarin.",
+  },
+  {
+    slug: "advanced-chinese",
+    name: "Advanced Chinese",
+    level: "Advanced",
+    language: "Chinese",
+    description: "Refine structure, rhetoric, and precision for deeper debates.",
+  },
+];
 
 export default function GroupsPage() {
   return (
     <>
       <Head>
-        <title>Mimir Community Center | Groups</title>
+        <title>Groups | The Mimir Language Community</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Nunito:wght;400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Sora:wght;400;600;700&display=swap"
           rel="stylesheet"
         />
       </Head>
-      <div className="grain"></div>
-      <header className="site-header">
-        <NavBar />
-        <section className="hero">
-          <div className="hero-copy">
-            <p className="eyebrow">Choose your track</p>
-            <h1>Find the group that matches your fluency</h1>
-            <p className="lead">
-              Every track is cohort-based. You will get weekly prompts, speaking pods, and
-              materials focused on debate-ready language.
-            </p>
-            <div className="hero-actions">
-              <Link className="cta" href="/signin">
-                Join now
-              </Link>
-              <Link className="cta ghost" href="/calendar">
-                See upcoming classes
-              </Link>
-            </div>
-          </div>
-          <div className="hero-card">
-            <div className="hero-card-top">
-              <span className="pill">How it works</span>
-              <h3>Intermediate or advanced</h3>
-              <p>Pick your level, then join weekly discussions and seasonal debates.</p>
-            </div>
-            <div className="hero-card-bottom">
-              <div>
-                <p className="label">Weekly time</p>
-                <p className="value">90 mins</p>
-              </div>
-              <div>
-                <p className="label">Practice mode</p>
-                <p className="value">Peer + mentor</p>
-              </div>
-              <Link className="cta small" href="/competitions">
-                See competitions
-              </Link>
-            </div>
-          </div>
-        </section>
-      </header>
 
-      <main>
-        <section className="section">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">Chinese tracks</p>
-              <h2>Chinese language groups</h2>
-            </div>
-            <p className="section-sub">
-              From intermediate clarity to advanced nuance, practice persuasive speaking with
-              weekly debate prompts and shared reading lists.
-            </p>
+      <div className="groups-page">
+        <header className="groups-hero">
+          <div className="groups-top">
+            <Link className="groups-brand" href="/">
+              The Mimir Language Community
+            </Link>
+            <nav className="groups-links">
+              <Link href="/competitions">Debate</Link>
+              <Link href="/groups">Groups</Link>
+              <Link href="/calendar">Calendar</Link>
+              <Link href="/announcements">Announcements</Link>
+            </nav>
           </div>
-          <div className="group-grid">
-            <article className="group-card">
-              <h3>Intermediate Chinese</h3>
-              <p>Build fluency by turning news clips and essays into live debates.</p>
-              <div className="tag-row">
-                <span>Weekly clinics</span>
-                <span>Peer speaking pods</span>
-              </div>
-              <div className="card-actions">
-                <Link className="cta small" href="/groups/intermediate-chinese">
-                  View details
-                </Link>
-                <Link className="cta ghost small" href="/signin">
-                  Join
-                </Link>
-              </div>
-            </article>
-            <article className="group-card">
-              <h3>Advanced Chinese</h3>
-              <p>Sharpen nuance, rhetorical structure, and high-level vocabulary.</p>
-              <div className="tag-row">
-                <span>Advanced discourse</span>
-                <span>Judge feedback</span>
-              </div>
-              <div className="card-actions">
-                <Link className="cta small" href="/groups/advanced-chinese">
-                  View details
-                </Link>
-                <Link className="cta ghost small" href="/signin">
-                  Join
-                </Link>
-              </div>
-            </article>
+          <div className="groups-hero-inner">
+            <p className="landing-eyebrow">Groups</p>
+            <h1 className="groups-title">Join a group that fits you.</h1>
           </div>
-        </section>
+        </header>
 
-        <section className="section highlight">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">Spanish tracks</p>
-              <h2>Spanish language groups</h2>
-            </div>
-            <p className="section-sub">
-              Apply debate structures to global topics and cultural context with
-              coached speaking labs.
-            </p>
-          </div>
-          <div className="group-grid">
-            <article className="group-card">
-              <h3>Intermediate Spanish</h3>
-              <p>Practice arguments that combine cultural context and real-world themes.</p>
-              <div className="tag-row">
-                <span>Conversation ladders</span>
-                <span>Media watchlists</span>
-              </div>
-              <div className="card-actions">
-                <Link className="cta small" href="/groups/intermediate-spanish">
-                  View details
-                </Link>
-                <Link className="cta ghost small" href="/signin">
-                  Join
-                </Link>
-              </div>
-            </article>
-            <article className="group-card">
-              <h3>Advanced Spanish</h3>
-              <p>Refine persuasive speaking with high-impact, rapid rebuttal drills.</p>
-              <div className="tag-row">
-                <span>Expert mentor hours</span>
-                <span>Style workshops</span>
-              </div>
-              <div className="card-actions">
-                <Link className="cta small" href="/groups/advanced-spanish">
-                  View details
-                </Link>
-                <Link className="cta ghost small" href="/signin">
-                  Join
-                </Link>
-              </div>
-            </article>
-          </div>
-        </section>
+        <main className="groups-content">
+          <section className="groups-benefits">
+            <h2>What you will do each week</h2>
+            <ul>
+              <li>Join a free weekly lesson with a Mimir teacher focused on the seasonal topic.</li>
+              <li>Receive curated watching and reading materials from professional mentors.</li>
+              <li>Discuss debate-topic arguments with global peers and arrange mini debates.</li>
+              <li>Prepare together before the final seasonal competition.</li>
+            </ul>
+          </section>
 
-        <section className="section">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">English tracks</p>
-              <h2>English language groups</h2>
-            </div>
-            <p className="section-sub">
-              Build confidence with structured debate prompts, vocabulary labs, and
-              fast rebuttal practice.
-            </p>
+          <div className="groups-cta-row">
+            <Link className="groups-inline-cta" href="#level-quiz" data-mimir-level-button="true">
+              Which level should I choose?
+            </Link>
           </div>
-          <div className="group-grid">
-            <article className="group-card">
-              <h3>Intermediate English</h3>
-              <p>Go beyond basics with guided speaking prompts and debate structures.</p>
-              <div className="tag-row">
-                <span>Discussion circles</span>
-                <span>Vocabulary labs</span>
-              </div>
-              <div className="card-actions">
-                <Link className="cta small" href="/groups/intermediate-english">
-                  View details
-                </Link>
-                <Link className="cta ghost small" href="/signin">
-                  Join
-                </Link>
-              </div>
-            </article>
-            <article className="group-card">
-              <h3>Advanced English</h3>
-              <p>Elevate tone, precision, and confidence for international rounds.</p>
-              <div className="tag-row">
-                <span>Live critiques</span>
-                <span>Argument polish</span>
-              </div>
-              <div className="card-actions">
-                <Link className="cta small" href="/groups/advanced-english">
-                  View details
-                </Link>
-                <Link className="cta ghost small" href="/signin">
-                  Join
-                </Link>
-              </div>
-            </article>
-          </div>
-        </section>
-      </main>
 
-      <footer className="footer">
-        <div>
-          <p className="logo-name">Mimir</p>
-          <p className="footer-note">Community for serious language momentum.</p>
-        </div>
-        <div className="footer-links">
-          <Link href="/">Home</Link>
-          <Link href="/calendar">Calendar</Link>
-          <Link href="/competitions">Competitions</Link>
-        </div>
-        <p className="footer-note">© 2025 Mimir. All rights reserved.</p>
-      </footer>
+          <div className="groups-grid">
+            {groups.map((group) => (
+              <article key={group.name} className="groups-card">
+                <div>
+                  <p className="groups-tag">{group.level}</p>
+                  <h2>{group.name}</h2>
+                  <p>{group.description}</p>
+                </div>
+                <div className="groups-card-meta">
+                  <span>{group.language}</span>
+                  <Link className="groups-cta" href={`/groups/${group.slug}`}>
+                    View group
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+
+        </main>
+
+      </div>
+      <LevelPlacementModal />
     </>
   );
 }
