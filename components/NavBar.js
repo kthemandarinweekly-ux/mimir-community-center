@@ -26,10 +26,10 @@ export default function NavBar({ action }) {
         </div>
       </Link>
       <div className="nav-links">
+        <Link href="/competitions">Debate</Link>
         <Link href="/groups">Groups</Link>
         <Link href="/calendar">Calendar</Link>
         <Link href="/announcements">Announcements</Link>
-        <Link href="/competitions">Competitions</Link>
         {isAdmin ? <Link href="/admin">Admin</Link> : null}
       </div>
       <Link className={`${actionClass} nav-account`} href={actionHref}>
