@@ -1,7 +1,10 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import NavBar from "../components/NavBar";
+
+// Calendar page - uses compact header with yellow accent
 
 const EVENT_TYPES = ["Class", "Debate Prep", "Competition"];
 
@@ -32,11 +35,16 @@ function buildCalendarGrid(currentDate) {
 }
 
 export default function CalendarPage() {
+  const { data: session, status } = useSession();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState([]);
+  const [rsvps, setRsvps] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [rsvpLoading, setRsvpLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const isLoggedIn = status === "authenticated";
 
   const monthLabel = currentDate.toLocaleString("default", {
     month: "long",
@@ -64,6 +72,82 @@ export default function CalendarPage() {
     loadEvents();
   }, []);
 
+  // Fetch user's RSVPs
+  useEffect(() => {
+    if (!session?.user?.email) {
+      setRsvps([]);
+      return;
+    }
+
+    const fetchRsvps = async () => {
+      try {
+        const response = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRsvps(data.rsvps || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch RSVPs:", error);
+      }
+    };
+
+    fetchRsvps();
+  }, [session?.user?.email]);
+
+  const hasRsvp = (eventId) => {
+    return rsvps.some((rsvp) => rsvp.eventId === eventId);
+  };
+
+  const getRsvpStatus = (eventId) => {
+    const rsvp = rsvps.find((r) => r.eventId === eventId);
+    return rsvp?.status || null;
+  };
+
+  const handleRsvp = async (event, newStatus = "going") => {
+    if (!session?.user?.email) return;
+
+    setRsvpLoading(true);
+    try {
+      const currentStatus = getRsvpStatus(event.id);
+
+      if (currentStatus === newStatus) {
+        // Remove RSVP
+        await fetch("/api/rsvps", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventId: event.id,
+            userEmail: session.user.email,
+          }),
+        });
+      } else {
+        // Create or update RSVP
+        await fetch("/api/rsvps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventId: event.id,
+            eventTitle: event.title,
+            userEmail: session.user.email,
+            userName: session.user.name || "",
+            status: newStatus,
+          }),
+        });
+      }
+
+      // Refresh RSVPs
+      const response = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRsvps(data.rsvps || []);
+      }
+    } catch (error) {
+      console.error("Failed to update RSVP:", error);
+    } finally {
+      setRsvpLoading(false);
+    }
+  };
+
   const days = useMemo(() => buildCalendarGrid(currentDate), [currentDate]);
   const eventsByDate = useMemo(() => {
     const map = new Map();
@@ -80,6 +164,37 @@ export default function CalendarPage() {
     return map;
   }, [events]);
 
+  // Count events for this month
+  const thisMonthEvents = events.filter((event) => {
+    if (!event.start) return false;
+    const eventDate = new Date(event.start);
+    return (
+      eventDate.getMonth() === currentDate.getMonth() &&
+      eventDate.getFullYear() === currentDate.getFullYear()
+    );
+  });
+
+  // Count user's RSVPs for this month
+  const userRsvpCount = rsvps.filter((rsvp) => {
+    const event = events.find((e) => e.id === rsvp.eventId);
+    if (!event?.start) return false;
+    const eventDate = new Date(event.start);
+    return (
+      eventDate.getMonth() === currentDate.getMonth() &&
+      eventDate.getFullYear() === currentDate.getFullYear()
+    );
+  }).length;
+
+  const formatTime = (value) => {
+    if (!value) {
+      return "TBD";
+    }
+    return new Date(value).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <>
       <Head>
@@ -92,8 +207,13 @@ export default function CalendarPage() {
         />
       </Head>
       <div className="grain"></div>
-      <header className="site-header">
+      <header className="site-header compact page-calendar">
         <NavBar />
+        <div className="breadcrumb">
+          <Link href="/">Home</Link>
+          <span>/</span>
+          <span>Calendar</span>
+        </div>
         <section className="hero">
           <div className="hero-copy">
             <p className="eyebrow">Community schedule</p>
@@ -103,9 +223,15 @@ export default function CalendarPage() {
               discussions, and competition milestones.
             </p>
             <div className="hero-actions">
-              <Link className="cta" href="/signin">
-                RSVP to sessions
-              </Link>
+              {isLoggedIn ? (
+                <Link className="cta" href="/account">
+                  Your RSVPs ({userRsvpCount})
+                </Link>
+              ) : (
+                <Link className="cta" href="/signin">
+                  RSVP to sessions
+                </Link>
+              )}
               <Link className="cta ghost" href="/competitions">
                 View competition timeline
               </Link>
@@ -114,17 +240,17 @@ export default function CalendarPage() {
           <div className="hero-card">
             <div className="hero-card-top">
               <span className="pill">This month</span>
-              <h3>May cohort rhythm</h3>
+              <h3>{monthLabel} rhythm</h3>
               <p>Live classes on Tuesdays, community debates on Saturdays.</p>
             </div>
             <div className="hero-card-bottom">
               <div>
                 <p className="label">Live sessions</p>
-                <p className="value">8 events</p>
+                <p className="value">{thisMonthEvents.length} events</p>
               </div>
               <div>
-                <p className="label">Discussion rooms</p>
-                <p className="value">12 rooms</p>
+                <p className="label">Your RSVPs</p>
+                <p className="value">{userRsvpCount} saved</p>
               </div>
               <Link className="cta small" href="/announcements">
                 See reminders
@@ -196,13 +322,15 @@ export default function CalendarPage() {
                         const typeClass = EVENT_TYPES.includes(event.type)
                           ? event.type.toLowerCase().replace(" ", "-")
                           : "class";
+                        const isRsvped = hasRsvp(event.id);
                         return (
                           <button
                             key={event.id}
                             type="button"
-                            className={`calendar-event ${typeClass}`}
+                            className={`calendar-event ${typeClass} ${isRsvped ? "rsvped" : ""}`}
                             onClick={() => setSelectedEvent(event)}
                           >
+                            {isRsvped && "✓ "}
                             {event.title}
                           </button>
                         );
@@ -226,13 +354,34 @@ export default function CalendarPage() {
                 <h2>{selectedEvent.title}</h2>
                 <p className="lead">{selectedEvent.description || "Event details."}</p>
                 <div className="detail-actions">
-                  <Link className="cta" href="/signin">
-                    RSVP for this event
-                  </Link>
-                  {selectedEvent.link ? (
-                    <Link className="cta ghost" href={selectedEvent.link}>
-                      Open link
+                  {isLoggedIn ? (
+                    <>
+                      <button
+                        className={`cta ${getRsvpStatus(selectedEvent.id) === "going" ? "active" : ""}`}
+                        type="button"
+                        onClick={() => handleRsvp(selectedEvent, "going")}
+                        disabled={rsvpLoading}
+                      >
+                        {getRsvpStatus(selectedEvent.id) === "going" ? "Going ✓" : "RSVP Going"}
+                      </button>
+                      <button
+                        className={`cta ghost ${getRsvpStatus(selectedEvent.id) === "maybe" ? "active" : ""}`}
+                        type="button"
+                        onClick={() => handleRsvp(selectedEvent, "maybe")}
+                        disabled={rsvpLoading}
+                      >
+                        {getRsvpStatus(selectedEvent.id) === "maybe" ? "Maybe ✓" : "Maybe"}
+                      </button>
+                    </>
+                  ) : (
+                    <Link className="cta" href="/signin">
+                      Sign in to RSVP
                     </Link>
+                  )}
+                  {selectedEvent.link ? (
+                    <a className="cta ghost" href={selectedEvent.link} target="_blank" rel="noopener noreferrer">
+                      Open link
+                    </a>
                   ) : null}
                 </div>
               </div>
@@ -252,13 +401,12 @@ export default function CalendarPage() {
                   <div>
                     <p className="label">Time</p>
                     <p className="value">
-                      {selectedEvent.start
-                        ? new Date(selectedEvent.start).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "TBD"}
+                      {formatTime(selectedEvent.start)}
                     </p>
+                  </div>
+                  <div>
+                    <p className="label">End time</p>
+                    <p className="value">{formatTime(selectedEvent.end)}</p>
                   </div>
                   <div>
                     <p className="label">Location</p>
@@ -286,7 +434,7 @@ export default function CalendarPage() {
         <div className="footer-links">
           <Link href="/">Home</Link>
           <Link href="/groups">Groups</Link>
-          <Link href="/competitions">Competitions</Link>
+          <Link href="/competitions">Debate</Link>
         </div>
         <p className="footer-note">© 2025 Mimir. All rights reserved.</p>
       </footer>
