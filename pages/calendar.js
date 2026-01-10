@@ -469,6 +469,7 @@ export default function CalendarPage() {
                   </Link>
                 )}
               </div>
+              <p className="label">Reminders are sent 1 hour before the event.</p>
             </div>
           </div>
         ) : null}
