@@ -103,6 +103,10 @@ export default function CalendarPage() {
     return rsvp?.status || null;
   };
 
+  const getRsvpRecord = (eventId) => {
+    return rsvps.find((r) => r.eventId === eventId) || null;
+  };
+
   const handleRsvp = async (event, newStatus = "going") => {
     if (!session?.user?.email) return;
 
@@ -128,6 +132,11 @@ export default function CalendarPage() {
           body: JSON.stringify({
             eventId: event.id,
             eventTitle: event.title,
+            eventStart: event.start,
+            eventEnd: event.end,
+            eventDescription: event.description,
+            eventLocation: event.location,
+            eventLink: event.link,
             userEmail: session.user.email,
             userName: session.user.name || "",
             status: newStatus,
@@ -143,6 +152,41 @@ export default function CalendarPage() {
       }
     } catch (error) {
       console.error("Failed to update RSVP:", error);
+    } finally {
+      setRsvpLoading(false);
+    }
+  };
+
+  const handleReminder = async (event) => {
+    if (!session?.user?.email) return;
+
+    setRsvpLoading(true);
+    try {
+      await fetch("/api/rsvps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: event.id,
+          eventTitle: event.title,
+          eventStart: event.start,
+          eventEnd: event.end,
+          eventDescription: event.description,
+          eventLocation: event.location,
+          eventLink: event.link,
+          userEmail: session.user.email,
+          userName: session.user.name || "",
+          status: getRsvpStatus(event.id) || "saved",
+          reminderRequested: true,
+        }),
+      });
+
+      const response = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRsvps(data.rsvps || []);
+      }
+    } catch (error) {
+      console.error("Failed to set reminder:", error);
     } finally {
       setRsvpLoading(false);
     }
@@ -193,6 +237,13 @@ export default function CalendarPage() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatDate = (value) => {
+    if (!value) {
+      return "TBD";
+    }
+    return new Date(value).toLocaleDateString();
   };
 
   return (
@@ -347,65 +398,31 @@ export default function CalendarPage() {
         </section>
 
         {selectedEvent ? (
-          <section className="section detail-layout">
-            <div className="detail-main">
-              <div className="detail-section">
+          <div className="event-modal-overlay" role="dialog" aria-modal="true">
+            <div className="event-modal">
+              <button
+                className="event-modal-close"
+                type="button"
+                onClick={() => setSelectedEvent(null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <div className="event-modal-main">
                 <p className="eyebrow">{selectedEvent.type}</p>
                 <h2>{selectedEvent.title}</h2>
                 <p className="lead">{selectedEvent.description || "Event details."}</p>
-                <div className="detail-actions">
-                  {isLoggedIn ? (
-                    <>
-                      <button
-                        className={`cta ${getRsvpStatus(selectedEvent.id) === "going" ? "active" : ""}`}
-                        type="button"
-                        onClick={() => handleRsvp(selectedEvent, "going")}
-                        disabled={rsvpLoading}
-                      >
-                        {getRsvpStatus(selectedEvent.id) === "going" ? "Going ✓" : "RSVP Going"}
-                      </button>
-                      <button
-                        className={`cta ghost ${getRsvpStatus(selectedEvent.id) === "maybe" ? "active" : ""}`}
-                        type="button"
-                        onClick={() => handleRsvp(selectedEvent, "maybe")}
-                        disabled={rsvpLoading}
-                      >
-                        {getRsvpStatus(selectedEvent.id) === "maybe" ? "Maybe ✓" : "Maybe"}
-                      </button>
-                    </>
-                  ) : (
-                    <Link className="cta" href="/signin">
-                      Sign in to RSVP
-                    </Link>
-                  )}
-                  {selectedEvent.link ? (
-                    <a className="cta ghost" href={selectedEvent.link} target="_blank" rel="noopener noreferrer">
-                      Open link
-                    </a>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-            <aside className="detail-side">
-              <div className="side-card">
-                <h3>Event details</h3>
-                <div className="stat-grid">
+                <div className="event-modal-meta">
                   <div>
                     <p className="label">Date</p>
-                    <p className="value">
-                      {selectedEvent.start
-                        ? new Date(selectedEvent.start).toLocaleDateString()
-                        : "TBD"}
-                    </p>
+                    <p className="value">{formatDate(selectedEvent.start)}</p>
                   </div>
                   <div>
-                    <p className="label">Time</p>
-                    <p className="value">
-                      {formatTime(selectedEvent.start)}
-                    </p>
+                    <p className="label">Start</p>
+                    <p className="value">{formatTime(selectedEvent.start)}</p>
                   </div>
                   <div>
-                    <p className="label">End time</p>
+                    <p className="label">End</p>
                     <p className="value">{formatTime(selectedEvent.end)}</p>
                   </div>
                   <div>
@@ -413,16 +430,47 @@ export default function CalendarPage() {
                     <p className="value">{selectedEvent.location || "Online"}</p>
                   </div>
                 </div>
-                <button
-                  className="cta ghost small"
-                  type="button"
-                  onClick={() => setSelectedEvent(null)}
-                >
-                  Close
-                </button>
+                {selectedEvent.link ? (
+                  <a
+                    className="event-link"
+                    href={selectedEvent.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {selectedEvent.link}
+                  </a>
+                ) : null}
               </div>
-            </aside>
-          </section>
+              <div className="event-modal-actions">
+                {isLoggedIn ? (
+                  <>
+                    <button
+                      className="cta"
+                      type="button"
+                      onClick={() => handleRsvp(selectedEvent, "saved")}
+                      disabled={rsvpLoading}
+                    >
+                      {getRsvpStatus(selectedEvent.id) ? "Saved ✓" : "Save this event"}
+                    </button>
+                    <button
+                      className="cta ghost"
+                      type="button"
+                      onClick={() => handleReminder(selectedEvent)}
+                      disabled={rsvpLoading || getRsvpRecord(selectedEvent.id)?.reminderRequested}
+                    >
+                      {getRsvpRecord(selectedEvent.id)?.reminderRequested
+                        ? "Email reminder set"
+                        : "Get email notification"}
+                    </button>
+                  </>
+                ) : (
+                  <Link className="cta" href="/signin">
+                    Sign in to save
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
         ) : null}
       </main>
 

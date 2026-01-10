@@ -598,8 +598,69 @@ p {
   text-decoration: underline;
 }
 
+.event-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 12, 28, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.event-modal {
+  width: min(680px, 100%);
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 24px 48px rgba(18, 12, 28, 0.2);
+  display: grid;
+  gap: 18px;
+  position: relative;
+}
+
+.event-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background: #f3eff9;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: #4a405a;
+}
+
+.event-modal-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  background: #f7f4fb;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.event-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.event-link {
+  color: #2f1660;
+  font-weight: 600;
+  word-break: break-word;
+}
+
 @media (max-width: 600px) {
   .level-modal {
+    padding: 20px;
+  }
+
+  .event-modal {
     padding: 20px;
   }
 

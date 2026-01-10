@@ -4,14 +4,24 @@ import { signOut, useSession } from "next-auth/react";
 import { useMemo, useState, useEffect } from "react";
 import NavBar from "../components/NavBar";
 import { useProfile } from "../components/useProfile";
+import { useMemberships } from "../components/useMemberships";
 
 export default function AccountPage() {
   const { data: session, status } = useSession();
   const { profile, saveProfile } = useProfile();
+  const { memberships } = useMemberships();
   const defaultName = session?.user?.name || session?.user?.email || "Member";
   const [nickname, setNickname] = useState(profile.nickname || "");
   const [avatarChoice, setAvatarChoice] = useState(profile.avatar || "sunrise");
   const [saved, setSaved] = useState(false);
+
+  // Dashboard data
+  const [rsvps, setRsvps] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const displayName = nickname || defaultName;
   const avatarOptions = useMemo(
     () => [
@@ -29,11 +39,71 @@ export default function AccountPage() {
     setAvatarChoice(profile.avatar || "sunrise");
   }, [profile.nickname, profile.avatar]);
 
+  // Fetch dashboard data
+  useEffect(() => {
+    if (!session?.user?.email) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // Fetch RSVPs
+        const rsvpResponse = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
+        if (rsvpResponse.ok) {
+          const data = await rsvpResponse.json();
+          setRsvps(data.rsvps || []);
+        }
+
+        // Fetch events
+        const eventsResponse = await fetch("/api/events");
+        if (eventsResponse.ok) {
+          const data = await eventsResponse.json();
+          setEvents(data.events || []);
+        }
+
+        // Fetch applications
+        const appsResponse = await fetch(`/api/applications?email=${encodeURIComponent(session.user.email)}`);
+        if (appsResponse.ok) {
+          const data = await appsResponse.json();
+          setApplications(data.applications || []);
+        }
+
+        // Fetch announcements
+        const announcementsResponse = await fetch("/api/announcements?limit=5");
+        if (announcementsResponse.ok) {
+          const data = await announcementsResponse.json();
+          setAnnouncements(data.announcements || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [session?.user?.email]);
+
   const handleSave = () => {
     saveProfile({ nickname: nickname.trim(), avatar: avatarChoice });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
+  // Get upcoming events user has RSVPed to
+  const upcomingRsvpEvents = useMemo(() => {
+    const now = new Date();
+    return rsvps
+      .map((rsvp) => {
+        const event = events.find((e) => e.id === rsvp.eventId);
+        return event ? { ...event, rsvpStatus: rsvp.status } : null;
+      })
+      .filter((event) => event && event.start && new Date(event.start) >= now)
+      .sort((a, b) => new Date(a.start) - new Date(b.start))
+      .slice(0, 4);
+  }, [rsvps, events]);
 
   return (
     <>
@@ -47,11 +117,16 @@ export default function AccountPage() {
         />
       </Head>
       <div className="grain"></div>
-      <header className="site-header">
+      <header className="site-header compact page-account">
         <NavBar />
+        <div className="breadcrumb">
+          <Link href="/">Home</Link>
+          <span>/</span>
+          <span>Account</span>
+        </div>
         <section className="hero account-hero">
           <div className="hero-copy">
-            <p className="eyebrow">User center</p>
+            <p className="eyebrow">Your dashboard</p>
             <div className="name-row">
               <img
                 className="name-avatar"
@@ -61,8 +136,7 @@ export default function AccountPage() {
               <h1>{displayName}</h1>
             </div>
             <p className="lead">
-              Manage your groups, track calendar reminders, and stay on top of the competitions
-              you follow.
+              Manage your groups and track your activity.
             </p>
             <div className="hero-actions">
               <Link className="cta" href="/groups">
@@ -82,11 +156,11 @@ export default function AccountPage() {
             <div className="hero-card-bottom">
               <div>
                 <p className="label">Groups joined</p>
-                <p className="value">3</p>
+                <p className="value">{memberships.length}</p>
               </div>
               <div>
                 <p className="label">Competitions</p>
-                <p className="value">2</p>
+                <p className="value">{applications.length}</p>
               </div>
               <Link className="cta small" href="/competitions">
                 Manage entries
@@ -162,47 +236,91 @@ export default function AccountPage() {
                   {saved ? "Saved!" : "Save changes"}
                 </button>
               </article>
+
               <article className="account-card">
                 <h3>Groups you joined</h3>
-                <ul className="list">
-                  <li className="list-item">Advanced English · Speaking pod A</li>
-                  <li className="list-item">Intermediate Chinese · Tuesday room</li>
-                  <li className="list-item">Advanced Spanish · Mentor circle</li>
-                </ul>
+                {loading ? (
+                  <p className="label">Loading...</p>
+                ) : memberships.length > 0 ? (
+                  <ul className="list">
+                    {memberships.map((membership) => (
+                      <li key={membership.id} className="list-item">
+                        <Link href={`/groups/${membership.groupSlug}`}>
+                          {membership.groupName || membership.groupSlug}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="label">You haven't joined any groups yet.</p>
+                )}
                 <Link className="cta small" href="/groups">
-                  Manage groups
+                  {memberships.length > 0 ? "Manage groups" : "Browse groups"}
                 </Link>
               </article>
+
               <article className="account-card">
                 <h3>Your calendar</h3>
-                <ul className="list">
-                  <li className="list-item">May 12 · Rebuttal toolkit workshop</li>
-                  <li className="list-item">May 18 · Season kickoff live</li>
-                  <li className="list-item">May 22 · Peer debate practice</li>
-                </ul>
+                {loading ? (
+                  <p className="label">Loading...</p>
+                ) : upcomingRsvpEvents.length > 0 ? (
+                  <ul className="list">
+                    {upcomingRsvpEvents.map((event) => (
+                      <li key={event.id} className="list-item">
+                        {new Date(event.start).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}{" "}
+                        · {event.title}
+                        {event.rsvpStatus ? ` · ${event.rsvpStatus}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="label">No upcoming RSVPs.</p>
+                )}
                 <Link className="cta small" href="/calendar">
                   View calendar
                 </Link>
               </article>
+
               <article className="account-card">
                 <h3>Announcements for you</h3>
-                <ul className="list">
-                  <li className="list-item">New topic pack: Climate migration</li>
-                  <li className="list-item">Mentor office hours reminder</li>
-                  <li className="list-item">Round 1 pairing opens today</li>
-                </ul>
+                {loading ? (
+                  <p className="label">Loading...</p>
+                ) : announcements.length > 0 ? (
+                  <ul className="list">
+                    {announcements.slice(0, 3).map((announcement) => (
+                      <li key={announcement.id} className="list-item">
+                        {announcement.title}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="label">No new announcements.</p>
+                )}
                 <Link className="cta small" href="/announcements">
                   See all
                 </Link>
               </article>
+
               <article className="account-card">
-                <h3>Competitions you follow</h3>
-                <ul className="list">
-                  <li className="list-item">International friendly match</li>
-                  <li className="list-item">Regional language showcase</li>
-                </ul>
+                <h3>Competitions you applied to</h3>
+                {loading ? (
+                  <p className="label">Loading...</p>
+                ) : applications.length > 0 ? (
+                  <ul className="list">
+                    {applications.map((app) => (
+                      <li key={app.id} className="list-item">
+                        {app.competitionName} · {app.status}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="label">No competition applications yet.</p>
+                )}
                 <Link className="cta small" href="/competitions">
-                  Manage competitions
+                  {applications.length > 0 ? "Manage competitions" : "Browse competitions"}
                 </Link>
               </article>
             </div>
