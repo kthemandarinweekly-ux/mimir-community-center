@@ -18,7 +18,6 @@ export default function AccountPage() {
   // Dashboard data
   const [rsvps, setRsvps] = useState([]);
   const [events, setEvents] = useState([]);
-  const [applications, setApplications] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,13 +60,6 @@ export default function AccountPage() {
         if (eventsResponse.ok) {
           const data = await eventsResponse.json();
           setEvents(data.events || []);
-        }
-
-        // Fetch applications
-        const appsResponse = await fetch(`/api/applications?email=${encodeURIComponent(session.user.email)}`);
-        if (appsResponse.ok) {
-          const data = await appsResponse.json();
-          setApplications(data.applications || []);
         }
 
         // Fetch announcements
@@ -157,10 +149,6 @@ export default function AccountPage() {
               <div>
                 <p className="label">Groups joined</p>
                 <p className="value">{memberships.length}</p>
-              </div>
-              <div>
-                <p className="label">Competitions</p>
-                <p className="value">{applications.length}</p>
               </div>
               <Link className="cta small" href="/competitions">
                 Manage entries
@@ -304,25 +292,6 @@ export default function AccountPage() {
                 </Link>
               </article>
 
-              <article className="account-card">
-                <h3>Competitions you applied to</h3>
-                {loading ? (
-                  <p className="label">Loading...</p>
-                ) : applications.length > 0 ? (
-                  <ul className="list">
-                    {applications.map((app) => (
-                      <li key={app.id} className="list-item">
-                        {app.competitionName} · {app.status}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="label">No competition applications yet.</p>
-                )}
-                <Link className="cta small" href="/competitions">
-                  {applications.length > 0 ? "Manage competitions" : "Browse competitions"}
-                </Link>
-              </article>
             </div>
           </section>
         )}

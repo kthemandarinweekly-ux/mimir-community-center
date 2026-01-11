@@ -6,9 +6,9 @@ import NavBar from "../../components/NavBar";
 const competitions = {
   "international-friendly-match": {
     name: "International friendly match",
-    round: "Round 1 · Online",
+    round: "Season spotlight",
     description:
-      "Pair with a partner from another language track and debate a shared motion.",
+      "Pair with a partner from another language track and explore a shared motion.",
     date: "May 22",
     duration: "75 mins",
     spots: "64 teams",
@@ -16,9 +16,9 @@ const competitions = {
   },
   "regional-language-showcase": {
     name: "Regional language showcase",
-    round: "Round 2 · Regional",
+    round: "Season spotlight",
     description:
-      "Compete within your cohort for mentoring credits and finals placement.",
+      "Practice within your cohort and share your perspective with the community.",
     date: "June 08",
     duration: "90 mins",
     spots: "48 teams",
@@ -26,9 +26,9 @@ const competitions = {
   },
   "global-debate-summit": {
     name: "Global debate summit",
-    round: "Finals · Live stream",
+    round: "Season spotlight",
     description:
-      "Top teams present to the full community and guest judges.",
+      "Join the full community for a global discussion showcase.",
     date: "June 28",
     duration: "120 mins",
     spots: "12 teams",
@@ -42,7 +42,7 @@ export default function CompetitionDetailPage() {
   const event = competitions[slug] || {
     name: "Community event",
     round: "Season event",
-    description: "A guided competition round for debate practice.",
+    description: "A guided community event for debate practice.",
     date: "TBD",
     duration: "60 mins",
     spots: "--",
@@ -69,8 +69,8 @@ export default function CompetitionDetailPage() {
             <h1>{event.name}</h1>
             <p className="lead">{event.description}</p>
             <div className="detail-actions">
-              <Link className="cta" href="/signin">
-                Apply for this round
+              <Link className="cta" href="/competitions">
+                View season topic
               </Link>
               <Link className="cta ghost" href="/calendar">
                 Add to calendar
@@ -87,7 +87,7 @@ export default function CompetitionDetailPage() {
               <span>Event highlight reel</span>
             </div>
             <div className="media-thumbs">
-              <div className="thumb">Round rules</div>
+              <div className="thumb">Topic framing</div>
               <div className="thumb">Judge rubric</div>
               <div className="thumb">Prep checklist</div>
               <div className="thumb">Sample debates</div>
@@ -98,13 +98,13 @@ export default function CompetitionDetailPage() {
             <h2>What to expect</h2>
             <ul className="detail-list">
               <li>Receive the motion and prep kit 7 days in advance.</li>
-              <li>Join a 15-minute warm-up with your partner and coach.</li>
-              <li>Debate live and receive detailed feedback after the round.</li>
+              <li>Join a short warm-up with your partner and coach.</li>
+              <li>Share perspectives and get feedback after the session.</li>
             </ul>
           </section>
 
           <section className="detail-section">
-            <h2>Competition agenda</h2>
+            <h2>Session flow</h2>
             <div className="detail-cards">
               <article className="detail-card">
                 <p className="label">Prep window</p>
@@ -112,9 +112,9 @@ export default function CompetitionDetailPage() {
                 <p>Guided prompts + optional mentor sessions.</p>
               </article>
               <article className="detail-card">
-                <p className="label">Debate day</p>
-                <h3>Live round</h3>
-                <p>Opening statements, rebuttal, and feedback.</p>
+                <p className="label">Live session</p>
+                <h3>Community discussion</h3>
+                <p>Opening statements, discussion, and feedback.</p>
               </article>
             </div>
           </section>
@@ -142,8 +142,8 @@ export default function CompetitionDetailPage() {
                 <span key={item}>{item}</span>
               ))}
             </div>
-            <Link className="cta" href="/signin">
-              Apply now
+            <Link className="cta" href="/competitions">
+              View materials
             </Link>
           </div>
 

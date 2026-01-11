@@ -1,115 +1,165 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import NavBar from "../../components/NavBar";
 import { useProfile } from "../../components/useProfile";
+import { useMemberships } from "../../components/useMemberships";
 
-const groups = {
+// Fallback group data
+const fallbackGroups = {
   "intermediate-chinese": {
     name: "Intermediate Chinese",
     level: "Intermediate",
-    description:
-      "Build fluency by turning news clips, essays, and debate motions into speaking practice.",
-    members: "420",
-    online: "18",
-    admins: "4",
+    description: "Build fluency by turning news clips, essays, and debate motions into speaking practice.",
     focus: ["Weekly clinics", "Speaking pods", "Structured feedback"],
     nextEvent: "May 10 · Debate structure essentials",
   },
   "advanced-chinese": {
     name: "Advanced Chinese",
     level: "Advanced",
-    description:
-      "Sharpen nuance, rhetorical structure, and advanced vocabulary for competitive rounds.",
-    members: "260",
-    online: "12",
-    admins: "3",
+    description: "Sharpen nuance, rhetorical structure, and advanced vocabulary for deeper debates.",
     focus: ["High-level discourse", "Judge reviews", "Rebuttal drills"],
     nextEvent: "May 12 · Rebuttal toolkit",
   },
   "intermediate-spanish": {
     name: "Intermediate Spanish",
     level: "Intermediate",
-    description:
-      "Practice arguments that combine cultural context and real-world themes.",
-    members: "310",
-    online: "15",
-    admins: "3",
+    description: "Practice arguments that combine cultural context and real-world themes.",
     focus: ["Conversation ladders", "Media watchlists", "Weekly prompts"],
     nextEvent: "May 08 · Ethics of AI in education",
   },
   "advanced-spanish": {
     name: "Advanced Spanish",
     level: "Advanced",
-    description:
-      "Refine persuasive speaking with high-impact, rapid rebuttal drills.",
-    members: "190",
-    online: "9",
-    admins: "2",
+    description: "Refine persuasive speaking with high-impact, rapid rebuttal drills.",
     focus: ["Expert mentor hours", "Style workshops", "Cross-track debates"],
     nextEvent: "May 14 · Advanced rebuttal lab",
   },
   "intermediate-english": {
     name: "Intermediate English",
     level: "Intermediate",
-    description:
-      "Go beyond basics with guided speaking prompts and debate structures.",
-    members: "520",
-    online: "22",
-    admins: "5",
+    description: "Go beyond basics with guided speaking prompts and debate structures.",
     focus: ["Discussion circles", "Vocabulary labs", "Peer reviews"],
     nextEvent: "May 06 · Opening statements clinic",
   },
   "advanced-english": {
     name: "Advanced English",
     level: "Advanced",
-    description:
-      "Elevate tone, precision, and confidence for international rounds.",
-    members: "280",
-    online: "14",
-    admins: "3",
+    description: "Elevate tone, precision, and confidence for international discussions.",
     focus: ["Live critiques", "Argument polish", "Competition prep"],
-    nextEvent: "May 16 · Finals rehearsal",
+    nextEvent: "May 16 · Argument polish lab",
   },
 };
 
 export default function GroupDetailPage() {
   const router = useRouter();
   const { slug } = router.query;
+  const { data: session, status } = useSession();
   const { profile } = useProfile();
-  const group = groups[slug] || {
-    name: "Language Group",
-    level: "Community",
-    description: "A focused cohort for debate-driven fluency practice.",
-    members: "--",
-    online: "--",
-    admins: "--",
-    focus: ["Weekly prompts", "Practice rooms", "Peer feedback"],
-    nextEvent: "Upcoming class",
-  };
-  const currentAvatar = profile.avatar || "sunrise";
-  const currentName = profile.nickname || "Member";
-  const [threads, setThreads] = useState([]);
-  const [selectedThread, setSelectedThread] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [newThread, setNewThread] = useState({ title: "", body: "" });
-  const [newComment, setNewComment] = useState("");
-  const [loadingThreads, setLoadingThreads] = useState(false);
-  const [loadingComments, setLoadingComments] = useState(false);
-  const [error, setError] = useState("");
+  const { isMember, joinGroup, leaveGroup } = useMemberships();
 
+  const [group, setGroup] = useState(null);
+  const [materials, setMaterials] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [threads, setThreads] = useState([]);
+  const [newThread, setNewThread] = useState({ title: "", body: "" });
+  const [loadingGroup, setLoadingGroup] = useState(true);
+  const [loadingThreads, setLoadingThreads] = useState(false);
+  const [error, setError] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false);
+
+  const currentAvatar = profile.avatar || "sunrise";
+  const currentName = profile.nickname || session?.user?.name || "Member";
+  const isLoggedIn = status === "authenticated";
+  const userIsMember = isMember(slug);
+
+  // Fetch group data
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchGroup = async () => {
+      setLoadingGroup(true);
+      try {
+        const response = await fetch(`/api/groups?slug=${slug}`);
+        if (response.ok) {
+          const data = await response.json();
+          setGroup(data.group);
+        } else {
+          // Use fallback
+          const fallback = fallbackGroups[slug] || {
+            name: "Language Group",
+            level: "Community",
+            description: "A focused cohort for debate-driven fluency practice.",
+            focus: ["Weekly prompts", "Practice rooms", "Peer feedback"],
+            nextEvent: "Upcoming class",
+          };
+          setGroup({ ...fallback, slug });
+        }
+      } catch (error) {
+        const fallback = fallbackGroups[slug] || {
+          name: "Language Group",
+          level: "Community",
+          description: "A focused cohort for debate-driven fluency practice.",
+          focus: ["Weekly prompts", "Practice rooms", "Peer feedback"],
+          nextEvent: "Upcoming class",
+        };
+        setGroup({ ...fallback, slug });
+      } finally {
+        setLoadingGroup(false);
+      }
+    };
+
+    fetchGroup();
+  }, [slug]);
+
+  // Fetch materials for this group
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchMaterials = async () => {
+      try {
+        const response = await fetch(`/api/materials?groupSlug=${slug}`);
+        if (response.ok) {
+          const data = await response.json();
+          setMaterials(data.materials || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch materials:", error);
+      }
+    };
+
+    fetchMaterials();
+  }, [slug]);
+
+  // Fetch group members
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchMembers = async () => {
+      try {
+        const response = await fetch(`/api/memberships?groupSlug=${slug}`);
+        if (response.ok) {
+          const data = await response.json();
+          setMembers(data.memberships || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch members:", error);
+      }
+    };
+
+    fetchMembers();
+  }, [slug]);
+
+  // Fetch threads
   const fetchThreads = async () => {
-    if (!slug) {
-      return;
-    }
+    if (!slug) return;
     setLoadingThreads(true);
     setError("");
     try {
       const response = await fetch(`/api/threads?groupSlug=${slug}`);
-      if (!response.ok) {
-        throw new Error("Failed to load threads");
-      }
+      if (!response.ok) throw new Error("Failed to load threads");
       const data = await response.json();
       setThreads(data.threads || []);
     } catch (err) {
@@ -119,36 +169,9 @@ export default function GroupDetailPage() {
     }
   };
 
-  const fetchComments = async (threadId) => {
-    if (!threadId) {
-      setComments([]);
-      return;
-    }
-    setLoadingComments(true);
-    setError("");
-    try {
-      const response = await fetch(`/api/comments?threadId=${threadId}`);
-      if (!response.ok) {
-        throw new Error("Failed to load comments");
-      }
-      const data = await response.json();
-      setComments(data.comments || []);
-    } catch (err) {
-      setError("Unable to load comments.");
-    } finally {
-      setLoadingComments(false);
-    }
-  };
-
   useEffect(() => {
     fetchThreads();
   }, [slug]);
-
-  useEffect(() => {
-    if (selectedThread?.id) {
-      fetchComments(selectedThread.id);
-    }
-  }, [selectedThread?.id]);
 
   const handleCreateThread = async () => {
     if (!newThread.title.trim()) {
@@ -175,33 +198,50 @@ export default function GroupDetailPage() {
     fetchThreads();
   };
 
-  const handleCreateComment = async () => {
-    if (!selectedThread?.id || !newComment.trim()) {
+
+  const handleJoinLeave = async () => {
+    if (!isLoggedIn) {
+      router.push("/signin");
       return;
     }
-    setError("");
-    const response = await fetch("/api/comments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        threadId: selectedThread.id,
-        authorName: currentName,
-        authorAvatar: currentAvatar,
-        body: newComment,
-      }),
-    });
-    if (!response.ok) {
-      setError("Unable to post comment.");
-      return;
+    setJoinLoading(true);
+    if (userIsMember) {
+      await leaveGroup(slug);
+    } else {
+      await joinGroup(slug, group?.name || "");
     }
-    setNewComment("");
-    fetchComments(selectedThread.id);
+    setJoinLoading(false);
+  };
+
+  if (loadingGroup) {
+    return (
+      <>
+        <Head>
+          <title>Mimir Community Center | Loading...</title>
+        </Head>
+        <div className="grain"></div>
+        <header className="site-header compact">
+          <NavBar />
+        </header>
+        <main className="section">
+          <p>Loading group...</p>
+        </main>
+      </>
+    );
+  }
+
+  const displayGroup = group || fallbackGroups[slug] || {
+    name: "Language Group",
+    level: "Community",
+    description: "A focused cohort for debate-driven fluency practice.",
+    focus: ["Weekly prompts", "Practice rooms", "Peer feedback"],
+    nextEvent: "Upcoming class",
   };
 
   return (
     <>
       <Head>
-        <title>Mimir Community Center | {group.name}</title>
+        <title>Mimir Community Center | {displayGroup.name}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -214,62 +254,35 @@ export default function GroupDetailPage() {
         <NavBar />
         <section className="detail-hero">
           <div>
-            <p className="eyebrow">{group.level} track</p>
-            <h1>{group.name}</h1>
-            <p className="lead">{group.description}</p>
-            <div className="detail-actions">
-              <Link className="cta" href="/signin">
-                Join group
-              </Link>
-              <Link className="cta ghost" href="/calendar">
-                View schedule
-              </Link>
-            </div>
+            <p className="eyebrow">{displayGroup.level} track</p>
+            <h1>{displayGroup.name}</h1>
+            <p className="lead">{displayGroup.description}</p>
           </div>
         </section>
       </header>
 
       <main className="section detail-layout">
         <div className="detail-main">
-          <div className="detail-media">
-            <div className="media-placeholder">
-              <span>Group intro + weekly highlights</span>
-            </div>
-            <div className="media-thumbs">
-              <div className="thumb">Prompt deck</div>
-              <div className="thumb">Speaking drill</div>
-              <div className="thumb">Reading pack</div>
-              <div className="thumb">Debate room</div>
-            </div>
-          </div>
-
           <section className="detail-section">
-            <h2>What you will do each week</h2>
-            <ul className="detail-list">
-              <li>Join a 60-minute live discussion with cohort partners.</li>
-              <li>Share watch-read-speak materials with peers and mentors.</li>
-              <li>Practice structured rebuttals using seasonal debate topics.</li>
-            </ul>
-          </section>
-
-          <section className="detail-section">
-            <h2>Upcoming group sessions</h2>
+            <div className="section-head compact">
+              <div>
+                <p className="eyebrow">Upcoming lessons</p>
+                <h2>Next up</h2>
+              </div>
+              <Link className="cta ghost small" href="/calendar">
+                View schedule
+              </Link>
+            </div>
             <div className="detail-cards">
               <article className="detail-card">
-                <p className="label">Next up</p>
-                <h3>{group.nextEvent}</h3>
+                <p className="label">This week</p>
+                <h3>{displayGroup.nextEvent}</h3>
                 <p>Live session · 60 mins · Online</p>
-                <Link className="cta small" href="/calendar/debate-structure-essentials">
-                  See details
-                </Link>
               </article>
               <article className="detail-card">
-                <p className="label">Community practice</p>
-                <h3>Peer speaking pods</h3>
-                <p>Small group drills · 45 mins</p>
-                <Link className="cta small" href="/calendar/opening-statements-clinic">
-                  Book a seat
-                </Link>
+                <p className="label">Coming soon</p>
+                <h3>Seasonal topic workshop</h3>
+                <p>Live session · 60 mins · Online</p>
               </article>
             </div>
           </section>
@@ -277,33 +290,101 @@ export default function GroupDetailPage() {
           <section className="detail-section">
             <div className="section-head compact">
               <div>
-                <p className="eyebrow">Group discussion</p>
-                <h2>Threads</h2>
+                <p className="eyebrow">Materials</p>
+                <h2>Watch &amp; read</h2>
               </div>
-              <button className="cta small" type="button" onClick={handleCreateThread}>
-                Post thread
+              <Link className="cta ghost small" href="/competitions">
+                Check more materials
+              </Link>
+            </div>
+            <div className="materials-grid">
+              <div className="materials-column">
+                <h3>Watch</h3>
+                <ul className="detail-list">
+                  {materials.filter((item) => item.type === "video").slice(0, 4).map((material) => (
+                    <li key={material.id}>
+                      {material.fileUrl ? (
+                        <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
+                          {material.title}
+                        </a>
+                      ) : (
+                        material.title
+                      )}
+                    </li>
+                  ))}
+                  {materials.filter((item) => item.type === "video").length === 0 && (
+                    <>
+                      <li>Weekly highlight reel</li>
+                      <li>Season topic overview</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+              <div className="materials-column">
+                <h3>Read</h3>
+                <ul className="detail-list">
+                  {materials
+                    .filter((item) => item.type !== "video")
+                    .slice(0, 4)
+                    .map((material) => (
+                      <li key={material.id}>
+                        {material.fileUrl ? (
+                          <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
+                            {material.title}
+                          </a>
+                        ) : (
+                          material.title
+                        )}
+                      </li>
+                    ))}
+                  {materials.filter((item) => item.type !== "video").length === 0 && (
+                    <>
+                      <li>Debate motion outline</li>
+                      <li>Vocabulary mini deck</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section className="detail-section">
+            <div className="section-head compact">
+              <div>
+                <p className="eyebrow">Discussion</p>
+                <h2>Topics &amp; Replies</h2>
+              </div>
+              <button className="cta ghost small" type="button">
+                Check out topics
               </button>
+              {isLoggedIn && (
+                <button className="cta small" type="button" onClick={handleCreateThread}>
+                  New topic
+                </button>
+              )}
             </div>
-            <div className="thread-editor">
-              <input
-                type="text"
-                placeholder="Thread title"
-                value={newThread.title}
-                onChange={(event) => setNewThread({ ...newThread, title: event.target.value })}
-              />
-              <textarea
-                rows={3}
-                placeholder="Start the discussion..."
-                value={newThread.body}
-                onChange={(event) => setNewThread({ ...newThread, body: event.target.value })}
-              />
-            </div>
-            {error ? <p className="label">{error}</p> : null}
-            {loadingThreads ? <p className="label">Loading threads...</p> : null}
+            {isLoggedIn && (
+              <div className="thread-editor">
+                <input
+                  type="text"
+                  placeholder="Topic title"
+                  value={newThread.title}
+                  onChange={(event) => setNewThread({ ...newThread, title: event.target.value })}
+                />
+                <textarea
+                  rows={3}
+                  placeholder="Add a quick prompt..."
+                  value={newThread.body}
+                  onChange={(event) => setNewThread({ ...newThread, body: event.target.value })}
+                />
+              </div>
+            )}
+            {error && <p className="label">{error}</p>}
+            {loadingThreads && <p className="label">Loading topics...</p>}
             <div className="thread-list">
-              {threads.length === 0 ? (
-                <p className="label">No threads yet. Be the first to start one.</p>
-              ) : null}
+              {threads.length === 0 && !loadingThreads && (
+                <p className="label">No topics yet. Be the first to start one.</p>
+              )}
               {threads.map((thread) => (
                 <div key={thread.id} className="thread-item">
                   <img
@@ -315,125 +396,61 @@ export default function GroupDetailPage() {
                     <h3>{thread.title}</h3>
                     <p className="thread-meta">
                       {thread.authorName} ·{" "}
-                      {thread.createdAt
-                        ? new Date(thread.createdAt).toLocaleDateString()
-                        : "Just now"}
+                      {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "Just now"}
                     </p>
                     <p className="thread-preview">{thread.body || "Open the thread to reply."}</p>
                   </div>
-                  <button
-                    className="cta ghost small"
-                    type="button"
-                    onClick={() => setSelectedThread(thread)}
-                  >
-                    Open
-                  </button>
                 </div>
               ))}
             </div>
           </section>
 
-          <section className="detail-section">
-            <div className="section-head compact">
-              <div>
-                <p className="eyebrow">Thread sample</p>
-                <h2>Comments</h2>
-              </div>
-            </div>
-            <div className="comment-box">
-              <img
-                className="comment-avatar"
-                src={`/avatars/${currentAvatar}.svg`}
-                alt="Your avatar"
-              />
-              <div className="comment-input">
-                <p className="label">Reply as {currentName}</p>
-                <textarea
-                  rows={3}
-                  placeholder={
-                    selectedThread ? "Share your insight..." : "Select a thread to reply."
-                  }
-                  value={newComment}
-                  onChange={(event) => setNewComment(event.target.value)}
-                />
-                <button
-                  className="cta small"
-                  type="button"
-                  onClick={handleCreateComment}
-                  disabled={!selectedThread}
-                >
-                  Post reply
-                </button>
-              </div>
-            </div>
-            <div className="comment-list">
-              {loadingComments ? <p className="label">Loading comments...</p> : null}
-              {selectedThread ? null : (
-                <p className="label">Select a thread to see comments.</p>
-              )}
-              {comments.map((comment) => (
-                <div key={comment.id} className="comment-item">
-                  <img
-                    className="comment-avatar"
-                    src={`/avatars/${comment.authorAvatar}.svg`}
-                    alt={`${comment.authorName} avatar`}
-                  />
-                  <div>
-                    <p className="thread-meta">
-                      {comment.authorName} ·{" "}
-                      {comment.createdAt
-                        ? new Date(comment.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "Just now"}
-                    </p>
-                    <p className="thread-preview">{comment.body}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
         </div>
 
         <aside className="detail-side">
           <div className="side-card">
             <h3>Group snapshot</h3>
-            <div className="stat-grid">
+            <div className="stat-grid two">
               <div>
                 <p className="label">Members</p>
-                <p className="value">{group.members}</p>
+                <p className="value">{members.length || displayGroup.memberCount || "--"}</p>
               </div>
               <div>
                 <p className="label">Online now</p>
-                <p className="value">{group.online}</p>
-              </div>
-              <div>
-                <p className="label">Admins</p>
-                <p className="value">{group.admins}</p>
+                <p className="value">{displayGroup.onlineCount || "--"}</p>
               </div>
             </div>
             <div className="tag-stack">
-              {group.focus.map((item) => (
+              {(displayGroup.focus || []).map((item) => (
                 <span key={item}>{item}</span>
               ))}
             </div>
-            <Link className="cta" href="/signin">
-              Join this group
-            </Link>
+            <button
+              className="cta wide"
+              type="button"
+              onClick={handleJoinLeave}
+              disabled={joinLoading}
+            >
+              {joinLoading
+                ? "..."
+                : userIsMember
+                ? "You're in this group"
+                : "Join this group"}
+            </button>
           </div>
 
           <div className="side-card">
-            <h3>Materials shared</h3>
+            <h3>Group reminders</h3>
             <ul className="detail-list">
-              <li>Debate motion outline</li>
-              <li>Vocabulary mini deck</li>
-              <li>Sample opening statements</li>
+              <li>Weekly lesson sign-ups open Mondays.</li>
+              <li>Share one prompt before Friday.</li>
+              <li>Mini-debate rooms open weekends.</li>
             </ul>
             <Link className="cta ghost" href="/announcements">
-              See announcements
+              See all reminders
             </Link>
           </div>
+
         </aside>
       </main>
     </>

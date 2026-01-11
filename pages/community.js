@@ -40,7 +40,7 @@ const fallbackGroups = [
   {
     slug: "advanced-english",
     name: "Advanced English",
-    description: "Elevate tone, precision, and confidence for international rounds.",
+    description: "Elevate tone, precision, and confidence for international discussions.",
     focus: ["Live critiques", "Argument polish"],
   },
 ];
@@ -215,7 +215,7 @@ export default function Home() {
               </div>
               <div>
                 <h4>Seasonal debates</h4>
-                <p>Coached prep and global community rounds</p>
+                <p>Coached prep and global community sessions</p>
               </div>
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function Home() {
             </div>
             <div className="hero-card-bottom">
               <div>
-                <p className="label">Applications close</p>
+                <p className="label">Materials update</p>
                 <p className="value">
                   {currentCompetition?.applicationDeadline
                     ? new Date(currentCompetition.applicationDeadline).toLocaleDateString("en-US", {
@@ -250,7 +250,7 @@ export default function Home() {
                 </p>
               </div>
               <Link className="cta small" href="/competitions">
-                Apply for the season
+                View season topic
               </Link>
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function Home() {
             <div className="flow-step">
               <span className="step">01</span>
               <h3>Watch</h3>
-              <p>Curated videos, debate rounds, and cultural clips to listen actively.</p>
+              <p>Curated videos, debate sessions, and cultural clips to listen actively.</p>
             </div>
             <div className="flow-step">
               <span className="step">02</span>
@@ -469,11 +469,11 @@ export default function Home() {
           <div className="section-head">
             <div>
               <p className="eyebrow">Debate competitions</p>
-              <h2>Apply to compete this season</h2>
+              <h2>Explore this season&apos;s debate theme</h2>
             </div>
             <p className="section-sub">
-              Competitions are open to all members. Each season includes prep rooms,
-              live coaching, and a final showcase.
+              Review the season focus, supporting materials, and suggested subtopics before
+              joining discussions.
             </p>
           </div>
           <div className="events-grid">
@@ -481,14 +481,12 @@ export default function Home() {
               competitions.slice(0, 3).map((comp) => (
                 <article key={comp.slug} className="event-card">
                   <div>
-                    <p className="label">
-                      {comp.round || "Competition"} · {comp.format || "Online"}
-                    </p>
+                    <p className="label">Season spotlight</p>
                     <h3>{comp.name}</h3>
                     <p>{comp.description}</p>
                   </div>
                   <Link className="cta small" href="/competitions">
-                    Apply
+                    View materials
                   </Link>
                 </article>
               ))
@@ -496,32 +494,32 @@ export default function Home() {
               <>
                 <article className="event-card">
                   <div>
-                    <p className="label">Round 1 · Online</p>
+                    <p className="label">Season spotlight</p>
                     <h3>International friendly match</h3>
                     <p>Pair with a partner from another language track.</p>
                   </div>
                   <Link className="cta small" href="/competitions">
-                    Apply
+                    View materials
                   </Link>
                 </article>
                 <article className="event-card">
                   <div>
-                    <p className="label">Round 2 · Regional</p>
+                    <p className="label">Season spotlight</p>
                     <h3>Regional language showcase</h3>
-                    <p>Compete within your cohort for mentoring credits.</p>
+                    <p>Practice within your cohort and share feedback.</p>
                   </div>
                   <Link className="cta small" href="/competitions">
-                    Apply
+                    View materials
                   </Link>
                 </article>
                 <article className="event-card">
                   <div>
-                    <p className="label">Finals · Live stream</p>
+                    <p className="label">Season spotlight</p>
                     <h3>Global debate summit</h3>
-                    <p>Top teams present to community and guest judges.</p>
+                    <p>Community showcase with guest mentors.</p>
                   </div>
                   <Link className="cta small" href="/competitions">
-                    Apply
+                    View materials
                   </Link>
                 </article>
               </>
