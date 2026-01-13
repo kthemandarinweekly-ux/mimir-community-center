@@ -2286,6 +2286,11 @@ p {
   align-items: center;
 }
 
+.debate-hero-actions .debate-cta,
+.debate-cta-row .debate-cta {
+  margin-top: 0;
+}
+
 .debate-cta-secondary {
   display: inline-block;
   padding: 16px 40px;
