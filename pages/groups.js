@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import LevelPlacementModal from "../components/LevelPlacementModal";
+import MinimalNav from "../components/MinimalNav";
 
 const groups = [
   {
@@ -51,7 +52,7 @@ export default function GroupsPage() {
   return (
     <>
       <Head>
-        <title>Groups | The Mimir Language Community</title>
+        <title>Groups | Open Debate</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -60,62 +61,61 @@ export default function GroupsPage() {
         />
       </Head>
 
-      <div className="groups-page">
-        <header className="groups-hero">
-          <div className="groups-top">
-            <Link className="groups-brand" href="/">
-              The Mimir Language Community
-            </Link>
-            <nav className="groups-links">
-              <Link href="/competitions">Debate</Link>
-              <Link href="/groups">Groups</Link>
-              <Link href="/calendar">Calendar</Link>
-              <Link href="/announcements">Announcements</Link>
-            </nav>
-          </div>
-          <div className="groups-hero-inner">
-            <p className="landing-eyebrow">Groups</p>
-            <h1 className="groups-title">Join a group that fits you.</h1>
-          </div>
-        </header>
+      <div className="minimal-page">
+        <MinimalNav />
 
-        <main className="groups-content">
-          <section className="groups-benefits">
-            <h2>What you will do each week</h2>
-            <ul>
-              <li>Join a free weekly lesson with a Mimir teacher focused on the seasonal topic.</li>
-              <li>Receive curated watching and reading materials from professional mentors.</li>
-              <li>Discuss debate-topic arguments with global peers and arrange mini debates.</li>
-              <li>Prepare together before the final seasonal competition.</li>
-            </ul>
+        <main className="minimal-content">
+          <section className="minimal-hero">
+            <p className="minimal-label">Find Your Group</p>
+            <h1 className="minimal-title">Join a group that fits you</h1>
+            <p className="minimal-subtitle">
+              Choose your target language and level. Start learning with peers worldwide.
+            </p>
           </section>
 
-          <div className="groups-cta-row">
-            <Link className="groups-inline-cta" href="#level-quiz" data-mimir-level-button="true">
-              Which level should I choose?
-            </Link>
-          </div>
-
-          <div className="groups-grid">
-            {groups.map((group) => (
-              <article key={group.name} className="groups-card">
-                <div>
-                  <p className="groups-tag">{group.level}</p>
-                  <h2>{group.name}</h2>
-                  <p>{group.description}</p>
-                </div>
-                <div className="groups-card-meta">
-                  <span>{group.language}</span>
-                  <Link className="groups-cta" href={`/groups/${group.slug}`}>
-                    View group
-                  </Link>
-                </div>
+          <section className="minimal-section">
+            <div className="minimal-benefits">
+              <article className="minimal-benefit">
+                <h3>Weekly Live Sessions</h3>
+                <p>Free lessons with teachers focused on the seasonal topic.</p>
               </article>
-            ))}
-          </div>
+              <article className="minimal-benefit">
+                <h3>Curated Materials</h3>
+                <p>Videos, readings, and vocabulary from professional mentors.</p>
+              </article>
+              <article className="minimal-benefit">
+                <h3>Global Community</h3>
+                <p>Discuss and practice arguments with peers around the world.</p>
+              </article>
+            </div>
+          </section>
 
+          <section className="minimal-section">
+            <div className="minimal-section-header">
+              <h2>Choose Your Group</h2>
+              <button className="minimal-text-btn" data-mimir-level-button="true">
+                Which level should I choose?
+              </button>
+            </div>
+
+            <div className="minimal-grid">
+              {groups.map((group) => (
+                <Link
+                  key={group.slug}
+                  href={`/groups/${group.slug}`}
+                  className="minimal-card"
+                >
+                  <div className="minimal-card-top">
+                    <span className="minimal-tag">{group.language}</span>
+                    <span className="minimal-level">{group.level}</span>
+                  </div>
+                  <h3>{group.name}</h3>
+                  <p>{group.description}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
         </main>
-
       </div>
       <LevelPlacementModal />
     </>
