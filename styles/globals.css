@@ -2934,10 +2934,13 @@ p {
 
 .calendar-day {
   min-height: 100px;
+  height: 100px;
   padding: 8px;
   background: #faf9fc;
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  position: relative;
 }
 
 .calendar-day.empty {
@@ -2957,6 +2960,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  overflow: hidden;
 }
 
 .calendar-event-btn {
@@ -2964,7 +2968,7 @@ p {
   border: none;
   padding: 4px 8px;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #5a4a8a;
   cursor: pointer;
   text-align: left;
@@ -2972,6 +2976,8 @@ p {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: background 0.2s ease;
+  max-width: 100%;
+  display: block;
 }
 
 .calendar-event-btn:hover {
@@ -2986,6 +2992,11 @@ p {
 .calendar-more {
   font-size: 0.7rem;
   color: #9a9a9a;
+}
+
+.calendar-day.has-events {
+  background: #f5f3ff;
+  border-color: rgba(122, 92, 255, 0.15);
 }
 
 /* Event Modal */
@@ -3065,6 +3076,24 @@ p {
   font-size: 0.9rem;
   margin-bottom: 20px;
   word-break: break-all;
+}
+
+.event-zoom-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  background: #2D8CFF;
+  color: #ffffff;
+  text-align: center;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 16px;
+  transition: background 0.2s ease;
+}
+
+.event-zoom-btn:hover {
+  background: #1a7ae8;
 }
 
 .event-actions {

@@ -308,8 +308,9 @@ export default function CalendarPage() {
                   }
                   const dayKey = day.toDateString();
                   const dayEvents = eventsByDate.get(dayKey) || [];
+                  const hasEvents = dayEvents.length > 0;
                   return (
-                    <div key={dayKey} className="calendar-day">
+                    <div key={dayKey} className={`calendar-day ${hasEvents ? "has-events" : ""}`}>
                       <span className="calendar-date-num">{day.getDate()}</span>
                       <div className="calendar-day-events">
                         {dayEvents.slice(0, 2).map((event) => {
@@ -320,6 +321,7 @@ export default function CalendarPage() {
                               type="button"
                               className={`calendar-event-btn ${isRsvped ? "saved" : ""}`}
                               onClick={() => setSelectedEvent(event)}
+                              title={event.title}
                             >
                               {isRsvped && "✓ "}
                               {event.title}
@@ -368,12 +370,12 @@ export default function CalendarPage() {
             </div>
             {selectedEvent.link && (
               <a
-                className="event-link-url"
+                className="event-zoom-btn"
                 href={selectedEvent.link}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {selectedEvent.link}
+                Join Zoom Meeting
               </a>
             )}
             <div className="event-actions">
