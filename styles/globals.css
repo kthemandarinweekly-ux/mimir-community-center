@@ -2989,6 +2989,105 @@ p {
   color: #ffffff;
 }
 
+/* Language color coding for calendar events */
+.calendar-event-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.event-lang-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.event-lang-dot.lang-chinese {
+  background: #e53e3e;
+}
+
+.event-lang-dot.lang-spanish {
+  background: #dd6b20;
+}
+
+.event-lang-dot.lang-english {
+  background: #3182ce;
+}
+
+.calendar-event-btn.lang-chinese {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.calendar-event-btn.lang-chinese:hover {
+  background: #feb2b2;
+}
+
+.calendar-event-btn.lang-spanish {
+  background: #feebc8;
+  color: #c05621;
+}
+
+.calendar-event-btn.lang-spanish:hover {
+  background: #fbd38d;
+}
+
+.calendar-event-btn.lang-english {
+  background: #bee3f8;
+  color: #2b6cb0;
+}
+
+.calendar-event-btn.lang-english:hover {
+  background: #90cdf4;
+}
+
+.calendar-event-btn.saved.lang-chinese {
+  background: #e53e3e;
+  color: #ffffff;
+}
+
+.calendar-event-btn.saved.lang-spanish {
+  background: #dd6b20;
+  color: #ffffff;
+}
+
+.calendar-event-btn.saved.lang-english {
+  background: #3182ce;
+  color: #ffffff;
+}
+
+/* Event modal language badge */
+.event-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.event-language-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.event-language-badge.lang-chinese {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.event-language-badge.lang-spanish {
+  background: #feebc8;
+  color: #c05621;
+}
+
+.event-language-badge.lang-english {
+  background: #bee3f8;
+  color: #2b6cb0;
+}
+
 .calendar-more {
   font-size: 0.7rem;
   color: #9a9a9a;

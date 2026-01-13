@@ -31,6 +31,7 @@ export default async function handler(req, res) {
         id: record.id,
         title: record.fields.Title || "Untitled",
         type: record.fields.Type || "Class",
+        language: record.fields.Language || "",
         start: record.fields.Start || null,
         end: record.fields.End || null,
         description: record.fields.Description || "",

@@ -315,14 +315,18 @@ export default function CalendarPage() {
                       <div className="calendar-day-events">
                         {dayEvents.slice(0, 2).map((event) => {
                           const isRsvped = hasRsvp(event.id);
+                          const langClass = event.language ? `lang-${event.language.toLowerCase()}` : "";
                           return (
                             <button
                               key={event.id}
                               type="button"
-                              className={`calendar-event-btn ${isRsvped ? "saved" : ""}`}
+                              className={`calendar-event-btn ${isRsvped ? "saved" : ""} ${langClass}`}
                               onClick={() => setSelectedEvent(event)}
                               title={event.title}
                             >
+                              {event.language && (
+                                <span className={`event-lang-dot ${langClass}`}></span>
+                              )}
                               {isRsvped && "✓ "}
                               {event.title}
                             </button>
@@ -351,7 +355,14 @@ export default function CalendarPage() {
             >
               ×
             </button>
-            <p className="minimal-label">{selectedEvent.type}</p>
+            <div className="event-modal-header">
+              <p className="minimal-label">{selectedEvent.type}</p>
+              {selectedEvent.language && (
+                <span className={`event-language-badge lang-${selectedEvent.language.toLowerCase()}`}>
+                  {selectedEvent.language}
+                </span>
+              )}
+            </div>
             <h2>{selectedEvent.title}</h2>
             <p className="event-description">{selectedEvent.description || "Event details."}</p>
             <div className="event-details">
