@@ -293,6 +293,21 @@ export default function CalendarPage() {
                 </button>
               </div>
 
+              <div className="calendar-legend">
+                <span className="legend-item">
+                  <span className="legend-dot lang-chinese"></span>
+                  Chinese
+                </span>
+                <span className="legend-item">
+                  <span className="legend-dot lang-spanish"></span>
+                  Spanish
+                </span>
+                <span className="legend-item">
+                  <span className="legend-dot lang-english"></span>
+                  English
+                </span>
+              </div>
+
               {error && <p className="calendar-message">{error}</p>}
               {loading && <p className="calendar-message">Loading events...</p>}
 

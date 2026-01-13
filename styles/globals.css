@@ -2910,6 +2910,42 @@ p {
   color: #9a9a9a;
 }
 
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #faf9fc;
+  border-radius: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #6a6070;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.lang-chinese {
+  background: #e53e3e;
+}
+
+.legend-dot.lang-spanish {
+  background: #dd6b20;
+}
+
+.legend-dot.lang-english {
+  background: #3182ce;
+}
+
 .calendar-message {
   text-align: center;
   color: #6a6070;
