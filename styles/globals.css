@@ -2314,6 +2314,7 @@ p {
   padding: 16px 40px;
   background: #7a5cff;
   color: #ffffff;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-weight: 600;
   font-size: 1rem;
@@ -2566,7 +2567,7 @@ p {
   font-size: 1rem;
 }
 
-.debate-cta-section .debate-cta {
+.debate-cta-section .debate-cta-row {
   margin-top: 24px;
 }
 
