@@ -64,11 +64,23 @@ export default function GroupDetailPage() {
   const [materials, setMaterials] = useState([]);
   const [members, setMembers] = useState([]);
   const [threads, setThreads] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [newThread, setNewThread] = useState({ title: "", body: "" });
   const [loadingGroup, setLoadingGroup] = useState(true);
   const [loadingThreads, setLoadingThreads] = useState(false);
   const [error, setError] = useState("");
   const [joinLoading, setJoinLoading] = useState(false);
+
+  // Extract language from slug (e.g., "intermediate-chinese" -> "Chinese")
+  const getLanguageFromSlug = (s) => {
+    if (!s) return "";
+    if (s.includes("chinese")) return "Chinese";
+    if (s.includes("spanish")) return "Spanish";
+    if (s.includes("english")) return "English";
+    return "";
+  };
+
+  const groupLanguage = getLanguageFromSlug(slug);
 
   const currentAvatar = profile.avatar || "sunrise";
   const currentName = profile.nickname || session?.user?.name || "Member";
@@ -173,6 +185,36 @@ export default function GroupDetailPage() {
     fetchThreads();
   }, [slug]);
 
+  // Fetch upcoming events filtered by group language
+  useEffect(() => {
+    if (!groupLanguage) return;
+
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch("/api/events");
+        if (response.ok) {
+          const data = await response.json();
+          const now = new Date();
+          // Filter events by language and upcoming date
+          const filtered = (data.events || [])
+            .filter((event) => {
+              const eventDate = event.start ? new Date(event.start) : null;
+              const matchesLanguage = event.language?.toLowerCase() === groupLanguage.toLowerCase();
+              const isUpcoming = eventDate && eventDate >= now;
+              return matchesLanguage && isUpcoming;
+            })
+            .sort((a, b) => new Date(a.start) - new Date(b.start))
+            .slice(0, 2);
+          setUpcomingEvents(filtered);
+        }
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, [groupLanguage]);
+
   const handleCreateThread = async () => {
     if (!newThread.title.trim()) {
       setError("Thread title is required.");
@@ -275,16 +317,36 @@ export default function GroupDetailPage() {
               </Link>
             </div>
             <div className="detail-cards">
-              <article className="detail-card">
-                <p className="label">This week</p>
-                <h3>{displayGroup.nextEvent}</h3>
-                <p>Live session · 60 mins · Online</p>
-              </article>
-              <article className="detail-card">
-                <p className="label">Coming soon</p>
-                <h3>Seasonal topic workshop</h3>
-                <p>Live session · 60 mins · Online</p>
-              </article>
+              {upcomingEvents.length > 0 ? (
+                upcomingEvents.map((event, index) => (
+                  <article key={event.id} className="detail-card">
+                    <p className="label">{index === 0 ? "Next" : "Coming soon"}</p>
+                    <h3>
+                      {event.start
+                        ? new Date(event.start).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : ""}{" "}
+                      · {event.title}
+                    </h3>
+                    <p>{event.type || "Live session"} · {event.location || "Online"}</p>
+                  </article>
+                ))
+              ) : (
+                <>
+                  <article className="detail-card">
+                    <p className="label">Next</p>
+                    <h3>To be announced</h3>
+                    <p>Check the calendar for upcoming {groupLanguage} events</p>
+                  </article>
+                  <article className="detail-card">
+                    <p className="label">Coming soon</p>
+                    <h3>Seasonal topic workshop</h3>
+                    <p>Live session · Online</p>
+                  </article>
+                </>
+              )}
             </div>
           </section>
 
