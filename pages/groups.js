@@ -52,7 +52,7 @@ export default function GroupsPage() {
   return (
     <>
       <Head>
-        <title>Groups | Open Debate</title>
+        <title>Groups | Mimir Language Community</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -74,18 +74,24 @@ export default function GroupsPage() {
           </section>
 
           <section className="minimal-section">
-            <div className="minimal-benefits">
-              <article className="minimal-benefit">
+            <div className="canva-benefits">
+              <article className="canva-card coral">
+                <div className="canva-card-icon">🎥</div>
                 <h3>Weekly Live Sessions</h3>
                 <p>Free lessons with teachers focused on the seasonal topic.</p>
+                <div className="canva-card-accent"></div>
               </article>
-              <article className="minimal-benefit">
+              <article className="canva-card mint">
+                <div className="canva-card-icon">📚</div>
                 <h3>Curated Materials</h3>
                 <p>Videos, readings, and vocabulary from professional mentors.</p>
+                <div className="canva-card-accent"></div>
               </article>
-              <article className="minimal-benefit">
+              <article className="canva-card sky">
+                <div className="canva-card-icon">🌍</div>
                 <h3>Global Community</h3>
                 <p>Discuss and practice arguments with peers around the world.</p>
+                <div className="canva-card-accent"></div>
               </article>
             </div>
           </section>

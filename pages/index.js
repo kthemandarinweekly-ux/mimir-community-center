@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Open Debate</title>
+        <title>Mimir Language Community</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -25,7 +25,7 @@ export default function Home() {
 
         <main className="debate-hero-content">
           <p className="debate-hero-eyebrow">For learners ready to go deeper</p>
-          <h1 className="debate-title">Open Debate</h1>
+          <h1 className="debate-title">Mimir Language Community</h1>
           <p className="debate-tagline">Discuss real topics. Sharpen your thinking. Advance your fluency.</p>
 
           <div className="debate-hero-actions">
@@ -56,7 +56,7 @@ export default function Home() {
 
       {/* Season Topic Section */}
       <section className="debate-section debate-topic-section">
-        <p className="debate-season-label">2023 Season 1</p>
+        <p className="debate-season-label">2026 Season 1</p>
         <h2 className="debate-topic">Should AI tools be used in schools?</h2>
         <p className="debate-topic-desc">
           One topic. Three languages. A global community debating together.
@@ -66,6 +66,9 @@ export default function Home() {
           <span>Spanish</span>
           <span>English</span>
         </div>
+        <Link href="/debate" className="debate-topic-link">
+          Learn more about this topic →
+        </Link>
       </section>
 
       {/* How It Works Section */}
@@ -100,53 +103,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* What We Offer Section */}
+      {/* What We Offer Section - Canva Style */}
       <section className="debate-section debate-offer-section">
         <h2 className="debate-section-title">Everything you need to grow</h2>
 
-        <div className="debate-offers">
-          <article className="debate-offer-card highlight">
-            <div className="offer-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-              </svg>
-            </div>
+        <div className="canva-offers">
+          <article className="canva-offer-card coral">
+            <div className="canva-offer-icon">📚</div>
             <h3>Curated Materials</h3>
             <p>
               Videos, articles, and vocabulary lists carefully selected for each topic.
               Save your favorites and build your personal study library.
             </p>
+            <div className="canva-offer-badge">Watch & Read</div>
           </article>
 
-          <article className="debate-offer-card highlight">
-            <div className="offer-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-            </div>
+          <article className="canva-offer-card mint">
+            <div className="canva-offer-icon">🎥</div>
             <h3>Free Live Sessions</h3>
             <p>
               Weekly community classes with experienced teachers.
               Learn to structure arguments and express ideas clearly.
             </p>
+            <div className="canva-offer-badge">Every Week</div>
           </article>
 
-          <article className="debate-offer-card highlight">
-            <div className="offer-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
+          <article className="canva-offer-card sky">
+            <div className="canva-offer-icon">🌍</div>
             <h3>Practice Groups</h3>
             <p>
               Find partners who match your level. Discuss ideas, practice speaking,
               and grow together as a team.
             </p>
+            <div className="canva-offer-badge">Global</div>
           </article>
         </div>
       </section>

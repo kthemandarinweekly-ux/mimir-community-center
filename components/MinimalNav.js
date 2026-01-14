@@ -11,7 +11,7 @@ export default function MinimalNav() {
         Mimir Language Community
       </Link>
       <nav className="minimal-links">
-        <Link href="/">Home</Link>
+        <Link href="/debate">Debate</Link>
         <Link href="/groups">Groups</Link>
         <Link href="/calendar">Calendar</Link>
         {isLoggedIn ? (

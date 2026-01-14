@@ -101,7 +101,7 @@ export default function CompetitionsPage() {
   return (
     <>
       <Head>
-        <title>Materials | Open Debate</title>
+        <title>Materials | Mimir Language Community</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -115,7 +115,7 @@ export default function CompetitionsPage() {
 
         <main className="minimal-content">
           <section className="minimal-hero">
-            <p className="minimal-label">2023 Season 1</p>
+            <p className="minimal-label">2026 Season 1</p>
             <h1 className="minimal-title">{seasonTopic}</h1>
             <p className="minimal-subtitle">
               Explore curated materials by language. Save your favorites to your library.

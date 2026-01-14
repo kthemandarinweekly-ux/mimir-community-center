@@ -142,7 +142,7 @@ export default function AccountPage() {
   return (
     <>
       <Head>
-        <title>My Account | Open Debate</title>
+        <title>My Account | Mimir Language Community</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link

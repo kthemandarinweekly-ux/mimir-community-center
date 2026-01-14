@@ -241,7 +241,7 @@ export default function CalendarPage() {
   return (
     <>
       <Head>
-        <title>Calendar | Open Debate</title>
+        <title>Calendar | Mimir Language Community</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link

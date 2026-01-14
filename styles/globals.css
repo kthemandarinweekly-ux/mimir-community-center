@@ -4060,3 +4060,515 @@ p {
 .nav-account-link {
   color: #7a5cff;
 }
+
+/* ===== Canva-Style Colorful Cards ===== */
+.canva-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.canva-card {
+  position: relative;
+  padding: 32px 28px;
+  border-radius: 24px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.canva-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.canva-card.coral {
+  background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+  color: #ffffff;
+}
+
+.canva-card.mint {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: #1a3a2a;
+}
+
+.canva-card.sky {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: #ffffff;
+}
+
+.canva-card-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.canva-card h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.canva-card p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.canva-card-accent {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+/* Homepage Canva Offers */
+.canva-offers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 40px;
+}
+
+.canva-offer-card {
+  position: relative;
+  padding: 36px 28px;
+  border-radius: 28px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.canva-offer-card:hover {
+  transform: translateY(-10px) rotate(-1deg);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+}
+
+.canva-offer-card.coral {
+  background: linear-gradient(145deg, #ff6b6b 0%, #ee5a24 100%);
+  color: #ffffff;
+}
+
+.canva-offer-card.mint {
+  background: linear-gradient(145deg, #26de81 0%, #20bf6b 100%);
+  color: #ffffff;
+}
+
+.canva-offer-card.sky {
+  background: linear-gradient(145deg, #45aaf2 0%, #4b7bec 100%);
+  color: #ffffff;
+}
+
+.canva-offer-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.canva-offer-card h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.canva-offer-card p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  opacity: 0.95;
+  margin-bottom: 20px;
+}
+
+.canva-offer-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Debate topic link */
+.debate-topic-link {
+  display: inline-block;
+  margin-top: 24px;
+  color: #7a5cff;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: color 0.2s ease;
+}
+
+.debate-topic-link:hover {
+  color: #5a3cd0;
+}
+
+/* ===== Debate Page Styles ===== */
+.debate-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #faf9fc 0%, #ffffff 100%);
+}
+
+.debate-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 6vw 80px;
+}
+
+.debate-hero-section {
+  text-align: center;
+  padding: 80px 0 60px;
+}
+
+.debate-season-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #7a5cff 0%, #a855f7 100%);
+  color: #ffffff;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+
+.debate-main-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: #1a1425;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.debate-main-desc {
+  font-size: 1.15rem;
+  color: #6a6070;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Why Section */
+.debate-why-section {
+  padding: 60px 0;
+}
+
+.debate-why-section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1a1425;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.debate-why-intro {
+  text-align: center;
+  color: #6a6070;
+  max-width: 700px;
+  margin: 0 auto 48px;
+  line-height: 1.7;
+}
+
+.debate-language-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.language-card {
+  padding: 32px;
+  border-radius: 24px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.language-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.language-card.chinese {
+  background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+}
+
+.language-card.spanish {
+  background: linear-gradient(145deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+}
+
+.language-card.english {
+  background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+}
+
+.language-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.language-flag {
+  font-size: 2rem;
+}
+
+.language-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.language-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+}
+
+.language-card li {
+  padding: 8px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.95;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.language-card li:last-child {
+  border-bottom: none;
+}
+
+.language-card-link {
+  display: inline-block;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+  transition: background 0.2s ease;
+}
+
+.language-card-link:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Quick Links Section */
+.debate-quick-section {
+  padding: 60px 0;
+}
+
+.debate-quick-section h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1425;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.quick-link-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.quick-link-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 36px 24px;
+  border-radius: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quick-link-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+}
+
+.quick-link-card.materials {
+  background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.quick-link-card.calendar {
+  background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.quick-link-card.groups {
+  background: linear-gradient(145deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.quick-icon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+.quick-link-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1425;
+  margin-bottom: 8px;
+}
+
+.quick-link-card p {
+  font-size: 0.9rem;
+  color: #6a6070;
+  line-height: 1.5;
+}
+
+/* Groups Section */
+.debate-groups-section {
+  padding: 60px 0;
+  text-align: center;
+}
+
+.debate-groups-section h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1425;
+  margin-bottom: 12px;
+}
+
+.debate-groups-desc {
+  color: #6a6070;
+  margin-bottom: 32px;
+}
+
+.debate-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.debate-group-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  font-weight: 500;
+  color: #1a1425;
+  transition: all 0.2s ease;
+}
+
+.debate-group-card:hover {
+  border-color: #7a5cff;
+  background: #f5f3ff;
+}
+
+.group-arrow {
+  color: #7a5cff;
+  font-size: 1.2rem;
+}
+
+/* Seasons Section */
+.debate-seasons-section {
+  padding: 60px 0;
+}
+
+.debate-seasons-section h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1425;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.seasons-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.season-card {
+  padding: 28px;
+  background: #f5f5f7;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.season-card.upcoming {
+  opacity: 0.7;
+}
+
+.season-label {
+  display: inline-block;
+  padding: 4px 12px;
+  background: rgba(122, 92, 255, 0.1);
+  color: #7a5cff;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.season-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1425;
+  margin-bottom: 8px;
+}
+
+.season-card p {
+  font-size: 0.85rem;
+  color: #6a6070;
+  line-height: 1.5;
+}
+
+/* Debate CTA Section */
+.debate-page .debate-cta-section {
+  margin-top: 40px;
+  padding: 60px 40px;
+  background: linear-gradient(145deg, #2d1f4e 0%, #1a1230 100%);
+  border-radius: 32px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.debate-cta-btn {
+  display: inline-block;
+  padding: 16px 40px;
+  background: #7a5cff;
+  color: #ffffff;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.debate-cta-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(122, 92, 255, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .canva-benefits,
+  .canva-offers,
+  .debate-language-cards,
+  .quick-link-grid,
+  .debate-groups-grid,
+  .seasons-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .debate-hero-section {
+    padding: 60px 0 40px;
+  }
+
+  .debate-main-title {
+    font-size: 1.8rem;
+  }
+
+  .debate-page .debate-cta-section {
+    padding: 40px 24px;
+    border-radius: 20px;
+  }
+}

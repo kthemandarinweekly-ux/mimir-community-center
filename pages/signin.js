@@ -33,7 +33,7 @@ export default function SignInPage() {
   return (
     <>
       <Head>
-        <title>Sign In | Open Debate</title>
+        <title>Sign In | Mimir Language Community</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -104,7 +104,7 @@ export default function SignInPage() {
           </div>
 
           <div className="signin-benefits">
-            <h2>Why join Open Debate?</h2>
+            <h2>Why join Mimir Language Community?</h2>
             <ul>
               <li>
                 <strong>Save your progress</strong>
