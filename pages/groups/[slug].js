@@ -434,16 +434,30 @@ export default function GroupDetailPage() {
           setJoinError(result.error || "Failed to leave group");
         }
       } else {
-        const result = await joinGroup(slug, group?.name || displayGroup.name || "");
-        if (!result.success) {
-          setJoinError(result.error || "Failed to join group");
+        // Direct API call for better error handling
+        const response = await fetch("/api/memberships", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userEmail: session.user.email,
+            userName: session.user.name || "",
+            groupSlug: slug,
+            groupName: group?.name || displayGroup.name || "",
+          }),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          setJoinError(errData.details || errData.error || "Failed to join group. Please check Airtable setup.");
         } else {
-          // Refresh members list after joining
-          const response = await fetch(`/api/memberships?groupSlug=${slug}`);
-          if (response.ok) {
-            const data = await response.json();
+          // Refresh memberships and members list
+          const membersRes = await fetch(`/api/memberships?groupSlug=${slug}`);
+          if (membersRes.ok) {
+            const data = await membersRes.json();
             setMembers(data.memberships || []);
           }
+          // Trigger membership refresh in hook
+          window.location.reload();
         }
       }
     } catch (error) {

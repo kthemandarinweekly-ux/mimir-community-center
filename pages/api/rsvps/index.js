@@ -146,7 +146,7 @@ export default async function handler(req, res) {
       if (userName) fields.UserName = userName;
       if (status) fields.Status = status;
       if (typeof reminderRequested === "boolean") fields.ReminderRequested = reminderRequested;
-      fields.CreatedAt = new Date().toISOString();
+      // Note: Airtable automatically tracks creation time, so we don't need CreatedAt
 
       const response = await fetch(baseUrl, {
         method: "POST",

@@ -80,6 +80,17 @@ export default async function handler(req, res) {
         }
       }
 
+      // Only include fields that have values
+      const fields = {
+        UserEmail: userEmail,
+        GroupSlug: groupSlug,
+      };
+      if (userName) fields.UserName = userName;
+      if (userAvatar) fields.UserAvatar = userAvatar;
+      if (groupName) fields.GroupName = groupName;
+      fields.Role = "member";
+      // Note: Airtable automatically tracks creation time, so we don't need JoinedAt
+
       const response = await fetch(baseUrl, {
         method: "POST",
         headers: {
@@ -87,24 +98,17 @@ export default async function handler(req, res) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          records: [
-            {
-              fields: {
-                UserEmail: userEmail,
-                UserName: userName || "",
-                UserAvatar: userAvatar || "sunrise",
-                GroupSlug: groupSlug,
-                GroupName: groupName || "",
-                Role: "member",
-                JoinedAt: new Date().toISOString(),
-              },
-            },
-          ],
+          records: [{ fields }],
         }),
       });
 
       if (!response.ok) {
-        res.status(response.status).json({ error: "Failed to join group" });
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Airtable membership error:", errorData);
+        res.status(response.status).json({
+          error: "Failed to join group",
+          details: errorData.error?.message || JSON.stringify(errorData)
+        });
         return;
       }
 
