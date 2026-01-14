@@ -25,7 +25,7 @@ export default function Home() {
 
         <main className="debate-hero-content">
           <p className="debate-hero-eyebrow">For learners ready to go deeper</p>
-          <h1 className="debate-title">Mimir Language Community</h1>
+          <h1 className="debate-title">Open Debate</h1>
           <p className="debate-tagline">Discuss real topics. Sharpen your thinking. Advance your fluency.</p>
 
           <div className="debate-hero-actions">
