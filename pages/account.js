@@ -497,29 +497,33 @@ export default function AccountPage() {
                     <p className="account-empty">Loading...</p>
                   ) : conversations.length > 0 ? (
                     <div className="account-conversation-list">
-                      {conversations.slice(0, 5).map((convo) => (
-                        <Link
-                          key={convo.id}
-                          href={`/groups/${convo.groupSlug}`}
-                          className="account-conversation-item"
-                        >
-                          <div className="conversation-badge">
-                            {convo.type === "started" ? "Started" : "Replied"}
-                          </div>
-                          <div className="conversation-info">
-                            <span className="conversation-title">{convo.title}</span>
-                            <span className="conversation-preview">
-                              {convo.body?.slice(0, 60) || "View discussion"}
-                              {convo.body?.length > 60 ? "..." : ""}
-                            </span>
-                            <span className="conversation-meta">
-                              {convo.createdAt
-                                ? new Date(convo.createdAt).toLocaleDateString()
-                                : "Recent"}
-                            </span>
-                          </div>
-                        </Link>
-                      ))}
+                      {conversations.slice(0, 5).map((convo) => {
+                        // For threads started, use thread id; for replies, use threadId
+                        const threadId = convo.type === "started" ? convo.id : convo.threadId;
+                        return (
+                          <Link
+                            key={convo.id}
+                            href={`/groups/${convo.groupSlug}?thread=${threadId}`}
+                            className="account-conversation-item"
+                          >
+                            <div className="conversation-badge">
+                              {convo.type === "started" ? "Started" : "Replied"}
+                            </div>
+                            <div className="conversation-info">
+                              <span className="conversation-title">{convo.title}</span>
+                              <span className="conversation-preview">
+                                {convo.body?.slice(0, 60) || "View discussion"}
+                                {convo.body?.length > 60 ? "..." : ""}
+                              </span>
+                              <span className="conversation-meta">
+                                {convo.createdAt
+                                  ? new Date(convo.createdAt).toLocaleDateString()
+                                  : "Recent"}
+                              </span>
+                            </div>
+                          </Link>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="account-empty-state">

@@ -56,7 +56,7 @@ const fallbackGroups = {
 
 export default function GroupDetailPage() {
   const router = useRouter();
-  const { slug } = router.query;
+  const { slug, thread: threadParam } = router.query;
   const { data: session, status } = useSession();
   const { profile } = useProfile();
   const { isMember, joinGroup, leaveGroup } = useMemberships();
@@ -215,6 +215,18 @@ export default function GroupDetailPage() {
   useEffect(() => {
     fetchThreads();
   }, [slug]);
+
+  // Auto-open thread if coming from a direct link
+  useEffect(() => {
+    if (threadParam && threads.length > 0 && !selectedThread) {
+      const thread = threads.find((t) => t.id === threadParam);
+      if (thread) {
+        handleOpenThread(thread);
+        // Clear the query param from URL without reload
+        router.replace(`/groups/${slug}`, undefined, { shallow: true });
+      }
+    }
+  }, [threadParam, threads, selectedThread]);
 
   // Fetch upcoming events filtered by group language
   useEffect(() => {
