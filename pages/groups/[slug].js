@@ -186,6 +186,7 @@ export default function GroupDetailPage() {
         title: newThread.title,
         groupSlug: slug,
         authorName: currentName,
+        authorEmail: session?.user?.email || "",
         authorAvatar: currentAvatar,
         body: newThread.body,
       }),
@@ -426,7 +427,7 @@ export default function GroupDetailPage() {
               ))}
             </div>
             <button
-              className="cta wide"
+              className={`cta wide ${userIsMember ? "joined" : ""}`}
               type="button"
               onClick={handleJoinLeave}
               disabled={joinLoading}
@@ -434,9 +435,19 @@ export default function GroupDetailPage() {
               {joinLoading
                 ? "..."
                 : userIsMember
-                ? "You're in this group"
+                ? "Joined ✓"
                 : "Join this group"}
             </button>
+            {userIsMember && (
+              <button
+                className="cta ghost wide leave-btn"
+                type="button"
+                onClick={handleJoinLeave}
+                disabled={joinLoading}
+              >
+                Leave group
+              </button>
+            )}
           </div>
 
           <div className="side-card">

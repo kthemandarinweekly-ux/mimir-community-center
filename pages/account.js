@@ -21,6 +21,7 @@ export default function AccountPage() {
   const [rsvps, setRsvps] = useState([]);
   const [events, setEvents] = useState([]);
   const [savedMaterials, setSavedMaterials] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const displayName = nickname || defaultName;
@@ -60,6 +61,38 @@ export default function AccountPage() {
         // Fetch saved materials from localStorage for now
         const saved = JSON.parse(localStorage.getItem("savedMaterials") || "[]");
         setSavedMaterials(saved);
+
+        // Fetch user's threads (conversations they started)
+        const threadsResponse = await fetch(`/api/threads?authorEmail=${encodeURIComponent(session.user.email)}`);
+        if (threadsResponse.ok) {
+          const threadsData = await threadsResponse.json();
+          const userThreads = (threadsData.threads || []).map(t => ({
+            ...t,
+            type: "started",
+          }));
+
+          // Fetch user's replies
+          const repliesResponse = await fetch(`/api/replies?authorEmail=${encodeURIComponent(session.user.email)}`);
+          let userReplies = [];
+          if (repliesResponse.ok) {
+            const repliesData = await repliesResponse.json();
+            userReplies = (repliesData.replies || []).map(r => ({
+              id: r.id,
+              title: r.threadTitle || "Thread reply",
+              groupSlug: r.groupSlug,
+              body: r.body,
+              createdAt: r.createdAt,
+              type: "replied",
+              threadId: r.threadId,
+            }));
+          }
+
+          // Combine and sort by date
+          const allConversations = [...userThreads, ...userReplies]
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 10);
+          setConversations(allConversations);
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -149,6 +182,10 @@ export default function AccountPage() {
             <div className="account-stat">
               <span className="stat-number">{savedMaterials.length}</span>
               <span className="stat-label">Saved Materials</span>
+            </div>
+            <div className="account-stat">
+              <span className="stat-number">{conversations.length}</span>
+              <span className="stat-label">Conversations</span>
             </div>
           </section>
 
@@ -246,6 +283,53 @@ export default function AccountPage() {
                       <p>No upcoming events saved.</p>
                       <Link href="/calendar" className="account-cta">
                         Browse Calendar
+                      </Link>
+                    </div>
+                  )}
+                </section>
+
+                {/* My Conversations */}
+                <section className="account-section">
+                  <div className="account-section-header">
+                    <h2>My Conversations</h2>
+                    <Link href="/groups" className="account-link">Join discussions</Link>
+                  </div>
+                  {loading ? (
+                    <p className="account-empty">Loading...</p>
+                  ) : conversations.length > 0 ? (
+                    <div className="account-conversation-list">
+                      {conversations.slice(0, 5).map((convo) => (
+                        <Link
+                          key={convo.id}
+                          href={`/groups/${convo.groupSlug}`}
+                          className="account-conversation-item"
+                        >
+                          <div className="conversation-badge">
+                            {convo.type === "started" ? "Started" : "Replied"}
+                          </div>
+                          <div className="conversation-info">
+                            <span className="conversation-title">{convo.title}</span>
+                            <span className="conversation-preview">
+                              {convo.body?.slice(0, 60) || "View discussion"}
+                              {convo.body?.length > 60 ? "..." : ""}
+                            </span>
+                            <span className="conversation-meta">
+                              {convo.createdAt
+                                ? new Date(convo.createdAt).toLocaleDateString()
+                                : "Recent"}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="account-empty-state">
+                      <p>No conversations yet.</p>
+                      <p className="empty-hint">
+                        Start or reply to discussions in your groups.
+                      </p>
+                      <Link href="/groups" className="account-cta">
+                        Explore Groups
                       </Link>
                     </div>
                   )}

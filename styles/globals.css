@@ -3518,7 +3518,7 @@ p {
 
 .account-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 32px;
 }
@@ -3793,6 +3793,86 @@ p {
   padding: 4px 8px;
 }
 
+/* Conversations List */
+.account-conversation-list {
+  display: grid;
+  gap: 12px;
+}
+
+.account-conversation-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px;
+  background: #faf9fc;
+  border-radius: 12px;
+  transition: background 0.2s ease;
+}
+
+.account-conversation-item:hover {
+  background: #f0edff;
+}
+
+.conversation-badge {
+  min-width: 60px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+  background: #e0daff;
+  color: #7a5cff;
+}
+
+.account-conversation-item:nth-child(odd) .conversation-badge {
+  background: #d0f5e8;
+  color: #2d8a6e;
+}
+
+.conversation-info {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+}
+
+.conversation-title {
+  font-weight: 500;
+  color: #1a1425;
+}
+
+.conversation-preview {
+  font-size: 0.85rem;
+  color: #6a6070;
+  line-height: 1.4;
+}
+
+.conversation-meta {
+  font-size: 0.75rem;
+  color: #9a9a9a;
+}
+
+/* Joined button style */
+.cta.wide.joined {
+  background: #d0f5e8;
+  color: #2d8a6e;
+}
+
+.cta.wide.joined:hover {
+  background: #b8ecd9;
+}
+
+.leave-btn {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #9a9a9a;
+}
+
+.leave-btn:hover {
+  color: #d94b6a;
+  border-color: #d94b6a;
+}
+
 .material-remove:hover {
   text-decoration: underline;
 }
@@ -3845,13 +3925,19 @@ p {
   cursor: pointer;
 }
 
+@media (max-width: 900px) {
+  .account-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .account-header {
     flex-direction: column;
   }
 
   .account-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .account-overview {
