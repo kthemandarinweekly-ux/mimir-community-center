@@ -9,14 +9,16 @@ export const POINTS = {
   THREAD_REPLY: 8,     // Replying to a discussion
 };
 
-// Badge levels with thresholds
+// Badge levels with thresholds - using vibrant, distinct colors
 export const BADGE_LEVELS = [
   {
     level: 1,
     name: "Newcomer",
     minPoints: 0,
     maxPoints: 29,
-    color: "#CD7F32", // Bronze
+    color: "#22C55E", // Green
+    gradientStart: "#22C55E",
+    gradientEnd: "#16A34A",
     emoji: "🌱",
     description: "Just getting started on your language journey",
   },
@@ -25,7 +27,9 @@ export const BADGE_LEVELS = [
     name: "Explorer",
     minPoints: 30,
     maxPoints: 99,
-    color: "#C0C0C0", // Silver
+    color: "#3B82F6", // Blue
+    gradientStart: "#3B82F6",
+    gradientEnd: "#2563EB",
     emoji: "🔍",
     description: "Actively exploring and engaging with the community",
   },
@@ -34,7 +38,9 @@ export const BADGE_LEVELS = [
     name: "Contributor",
     minPoints: 100,
     maxPoints: 249,
-    color: "#FFD700", // Gold
+    color: "#F59E0B", // Yellow/Orange
+    gradientStart: "#F59E0B",
+    gradientEnd: "#D97706",
     emoji: "⭐",
     description: "A valuable contributor to discussions and learning",
   },
@@ -43,7 +49,9 @@ export const BADGE_LEVELS = [
     name: "Champion",
     minPoints: 250,
     maxPoints: 499,
-    color: "#E5E4E2", // Platinum
+    color: "#EF4444", // Red
+    gradientStart: "#EF4444",
+    gradientEnd: "#DC2626",
     emoji: "🏆",
     description: "A community champion helping others succeed",
   },
@@ -52,7 +60,9 @@ export const BADGE_LEVELS = [
     name: "Legend",
     minPoints: 500,
     maxPoints: Infinity,
-    color: "#B9F2FF", // Diamond
+    color: "#8B5CF6", // Purple
+    gradientStart: "#8B5CF6",
+    gradientEnd: "#7C3AED",
     emoji: "💎",
     description: "A legendary member and language learning master",
   },

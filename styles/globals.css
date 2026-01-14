@@ -5014,28 +5014,34 @@ p {
    BADGE SYSTEM STYLES
    ============================================= */
 
-/* Badge Section on Dashboard */
+/* Badge Section on Dashboard - Full Width Redesign */
 .badge-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 32px;
-  padding: 24px;
-  background: linear-gradient(135deg, #f8f7ff 0%, #fff 100%);
-  border-radius: 20px;
-  border: 1px solid var(--border);
-}
-
-.badge-main {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Top banner with badge info */
+.badge-main {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 32px;
+  align-items: center;
+  padding: 32px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .badge-display {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
 }
 
 .badge-info {
@@ -5043,48 +5049,50 @@ p {
 }
 
 .badge-level-text {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--moss);
-  margin: 0 0 4px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 6px;
 }
 
 .badge-points {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--ink);
+  font-size: 36px;
+  font-weight: 800;
+  color: white;
   margin: 0 0 8px;
 }
 
 .badge-description {
-  font-size: 14px;
-  color: var(--ink-soft);
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
   margin: 0;
   line-height: 1.5;
+  max-width: 300px;
 }
 
 /* Welcome with Badge */
 .welcome-with-badge {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* Badge Progress */
+/* Badge Progress - Inside banner */
 .badge-progress-container {
-  background: white;
-  padding: 16px 20px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 20px 24px;
+  border-radius: 16px;
+  min-width: 280px;
 }
 
 .badge-progress-labels {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .current-badge,
@@ -5094,74 +5102,84 @@ p {
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink);
+  color: white;
 }
 
 .badge-progress-bar {
-  height: 10px;
-  background: var(--sand);
-  border-radius: 5px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
   overflow: hidden;
 }
 
 .badge-progress-fill {
   height: 100%;
-  border-radius: 5px;
+  border-radius: 6px;
   transition: width 0.5s ease;
+  background: white !important;
 }
 
 .badge-progress-text {
   font-size: 13px;
-  color: var(--ink-soft);
-  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 12px 0 0;
   text-align: center;
+  font-weight: 500;
 }
 
 .badge-max-level {
-  color: var(--moss);
-  font-weight: 600;
+  color: #ffd700;
+  font-weight: 700;
 }
 
-/* AI Recommendations */
+/* AI Recommendations - Horizontal cards below banner */
 .badge-recommendations {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 28px 40px;
+  background: white;
 }
 
 .recommendations-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   color: var(--ink-soft);
-  margin: 0 0 8px;
+  margin: 0 0 16px;
 }
 
 .recommendations-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
 .recommendation-card {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  background: white;
-  border-radius: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 16px;
   border: 1px solid var(--border);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .recommendation-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: var(--moss);
 }
 
 .rec-icon {
-  font-size: 24px;
+  font-size: 32px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--moss) 0%, #a855f7 100%);
+  border-radius: 14px;
   flex-shrink: 0;
 }
 
@@ -5171,32 +5189,35 @@ p {
 }
 
 .rec-content h4 {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--ink);
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 }
 
 .rec-content p {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink-soft);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .rec-action {
-  padding: 8px 14px;
-  background: var(--moss);
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--moss) 0%, #8b5cf6 100%);
   color: white;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 10px;
   white-space: nowrap;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  margin-top: 4px;
+  display: inline-block;
 }
 
 .rec-action:hover {
-  background: #6a4cef;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(122, 92, 255, 0.4);
 }
 
 /* Badge Tab Content */
@@ -5459,8 +5480,25 @@ p {
 }
 
 /* Responsive Badge Styles */
-@media (max-width: 900px) {
-  .badge-section {
+@media (max-width: 1024px) {
+  .badge-main {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    text-align: center;
+  }
+
+  .badge-display {
+    justify-content: center;
+  }
+
+  .badge-progress-container {
+    min-width: auto;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .recommendations-list {
     grid-template-columns: 1fr;
   }
 
@@ -5470,9 +5508,21 @@ p {
 }
 
 @media (max-width: 600px) {
+  .badge-main {
+    padding: 24px 20px;
+  }
+
+  .badge-recommendations {
+    padding: 20px;
+  }
+
   .badge-display {
     flex-direction: column;
     text-align: center;
+  }
+
+  .badge-points {
+    font-size: 28px;
   }
 
   .badge-info {

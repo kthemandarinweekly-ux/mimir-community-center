@@ -1,37 +1,43 @@
 import { useRef } from "react";
 import { BADGE_LEVELS, POINTS } from "./useBadge";
 
-// Badge icon component - renders the badge visually
+// Badge icon component - renders the badge visually with vibrant colors
 export const BadgeIcon = ({ badge, size = "medium", showName = false }) => {
   const sizes = {
-    small: { width: 24, height: 24, fontSize: 12 },
-    medium: { width: 40, height: 40, fontSize: 18 },
-    large: { width: 80, height: 80, fontSize: 36 },
-    xlarge: { width: 120, height: 120, fontSize: 54 },
+    small: { width: 28, height: 28, fontSize: 14, border: 2 },
+    medium: { width: 48, height: 48, fontSize: 22, border: 3 },
+    large: { width: 100, height: 100, fontSize: 48, border: 4 },
+    xlarge: { width: 140, height: 140, fontSize: 64, border: 5 },
   };
 
-  const { width, height, fontSize } = sizes[size] || sizes.medium;
+  const { width, height, fontSize, border } = sizes[size] || sizes.medium;
+  const gradientStart = badge.gradientStart || badge.color;
+  const gradientEnd = badge.gradientEnd || adjustColor(badge.color, -20);
 
   return (
-    <div className={`badge-icon badge-level-${badge.level}`} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+    <div className={`badge-icon badge-level-${badge.level}`} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
       <div
         className="badge-circle"
         style={{
           width,
           height,
           borderRadius: "50%",
-          background: `linear-gradient(135deg, ${badge.color} 0%, ${adjustColor(badge.color, -20)} 100%)`,
+          background: `linear-gradient(145deg, ${gradientStart} 0%, ${gradientEnd} 100%)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize,
-          boxShadow: `0 2px 8px ${badge.color}40`,
-          border: `2px solid ${adjustColor(badge.color, 20)}`,
+          boxShadow: `0 4px 16px ${badge.color}50, inset 0 2px 4px rgba(255,255,255,0.3)`,
+          border: `${border}px solid rgba(255,255,255,0.4)`,
         }}
       >
         {badge.emoji}
       </div>
-      {showName && <span className="badge-name" style={{ fontWeight: 600, fontSize: 14 }}>{badge.name}</span>}
+      {showName && (
+        <span className="badge-name" style={{ fontWeight: 700, fontSize: size === "large" ? 20 : 15, color: badge.color }}>
+          {badge.name}
+        </span>
+      )}
     </div>
   );
 };
