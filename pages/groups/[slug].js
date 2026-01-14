@@ -75,6 +75,11 @@ export default function GroupDetailPage() {
   const [rsvpLoading, setRsvpLoading] = useState(false);
   const [showTopicsModal, setShowTopicsModal] = useState(false);
   const [showMaterialsModal, setShowMaterialsModal] = useState(false);
+  const [selectedThread, setSelectedThread] = useState(null);
+  const [threadReplies, setThreadReplies] = useState([]);
+  const [newReply, setNewReply] = useState("");
+  const [loadingReplies, setLoadingReplies] = useState(false);
+  const [postingReply, setPostingReply] = useState(false);
 
   // Extract language from slug (e.g., "intermediate-chinese" -> "Chinese")
   const getLanguageFromSlug = (s) => {
@@ -331,6 +336,69 @@ export default function GroupDetailPage() {
     return new Date(value).toLocaleDateString();
   };
 
+  // Open thread and fetch replies
+  const handleOpenThread = async (thread) => {
+    setSelectedThread(thread);
+    setLoadingReplies(true);
+    setThreadReplies([]);
+    setNewReply("");
+
+    try {
+      const response = await fetch(`/api/replies?threadId=${thread.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setThreadReplies(data.replies || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch replies:", error);
+    } finally {
+      setLoadingReplies(false);
+    }
+  };
+
+  // Post a reply to the selected thread
+  const handlePostReply = async () => {
+    if (!newReply.trim() || !selectedThread) return;
+    if (!session?.user?.email) {
+      alert("Please sign in to reply");
+      return;
+    }
+
+    setPostingReply(true);
+    try {
+      const response = await fetch("/api/replies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          threadId: selectedThread.id,
+          threadTitle: selectedThread.title,
+          groupSlug: slug,
+          authorName: currentName,
+          authorEmail: session.user.email,
+          authorAvatar: currentAvatar,
+          body: newReply.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        setNewReply("");
+        // Refresh replies
+        const repliesRes = await fetch(`/api/replies?threadId=${selectedThread.id}`);
+        if (repliesRes.ok) {
+          const data = await repliesRes.json();
+          setThreadReplies(data.replies || []);
+        }
+      } else {
+        alert("Failed to post reply. Please try again.");
+      }
+    } catch (error) {
+      console.error("Failed to post reply:", error);
+      alert("Failed to post reply. Please try again.");
+    } finally {
+      setPostingReply(false);
+    }
+  };
+
   const handleJoinLeave = async () => {
     if (!isLoggedIn) {
       router.push("/signin");
@@ -552,10 +620,15 @@ export default function GroupDetailPage() {
                 <p className="label">No topics yet. Be the first to start one.</p>
               )}
               {threads.map((thread) => (
-                <div key={thread.id} className="thread-item">
+                <div
+                  key={thread.id}
+                  className="thread-item clickable"
+                  onClick={() => handleOpenThread(thread)}
+                  style={{ cursor: "pointer" }}
+                >
                   <img
                     className="thread-avatar"
-                    src={`/avatars/${thread.authorAvatar}.svg`}
+                    src={`/avatars/${thread.authorAvatar || "sunrise"}.svg`}
                     alt={`${thread.authorName} avatar`}
                   />
                   <div>
@@ -564,8 +637,9 @@ export default function GroupDetailPage() {
                       {thread.authorName} ·{" "}
                       {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "Just now"}
                     </p>
-                    <p className="thread-preview">{thread.body || "Open the thread to reply."}</p>
+                    <p className="thread-preview">{thread.body || "Click to open and reply"}</p>
                   </div>
+                  <span className="thread-arrow">→</span>
                 </div>
               ))}
             </div>
@@ -801,6 +875,108 @@ export default function GroupDetailPage() {
               <Link href="/competitions" className="cta ghost">
                 Browse all materials
               </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Thread Detail Modal */}
+      {selectedThread && (
+        <div className="event-overlay" onClick={() => setSelectedThread(null)}>
+          <div className="event-modal-box modal-large thread-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="event-close"
+              type="button"
+              onClick={() => setSelectedThread(null)}
+            >
+              ×
+            </button>
+            <div className="thread-modal-header">
+              <img
+                className="thread-author-avatar"
+                src={`/avatars/${selectedThread.authorAvatar || "sunrise"}.svg`}
+                alt={`${selectedThread.authorName} avatar`}
+              />
+              <div>
+                <p className="thread-author-name">{selectedThread.authorName}</p>
+                <p className="thread-date">
+                  {selectedThread.createdAt
+                    ? new Date(selectedThread.createdAt).toLocaleDateString()
+                    : "Just now"}
+                </p>
+              </div>
+            </div>
+            <h2 className="thread-modal-title">{selectedThread.title}</h2>
+            {selectedThread.body && (
+              <p className="thread-modal-body">{selectedThread.body}</p>
+            )}
+
+            <div className="thread-replies-section">
+              <h3 className="replies-heading">
+                {threadReplies.length} {threadReplies.length === 1 ? "Reply" : "Replies"}
+              </h3>
+
+              {loadingReplies ? (
+                <p className="loading-text">Loading replies...</p>
+              ) : threadReplies.length === 0 ? (
+                <p className="no-replies">No replies yet. Be the first to respond!</p>
+              ) : (
+                <div className="replies-list">
+                  {threadReplies.map((reply) => (
+                    <div key={reply.id} className="reply-item">
+                      <img
+                        className="reply-avatar"
+                        src={`/avatars/${reply.authorAvatar || "sunrise"}.svg`}
+                        alt={`${reply.authorName} avatar`}
+                      />
+                      <div className="reply-content">
+                        <div className="reply-header">
+                          <span className="reply-author">{reply.authorName}</span>
+                          <span className="reply-date">
+                            {reply.createdAt
+                              ? new Date(reply.createdAt).toLocaleDateString()
+                              : "Just now"}
+                          </span>
+                        </div>
+                        <p className="reply-body">{reply.body}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {isLoggedIn ? (
+                <div className="reply-form">
+                  <img
+                    className="reply-avatar"
+                    src={`/avatars/${currentAvatar}.svg`}
+                    alt="Your avatar"
+                  />
+                  <div className="reply-input-wrapper">
+                    <textarea
+                      className="reply-input"
+                      placeholder="Write a reply..."
+                      rows={3}
+                      value={newReply}
+                      onChange={(e) => setNewReply(e.target.value)}
+                    />
+                    <button
+                      className="reply-submit-btn"
+                      onClick={handlePostReply}
+                      disabled={!newReply.trim() || postingReply}
+                    >
+                      {postingReply ? "Posting..." : "Post Reply"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="reply-signin-prompt">
+                  <p>Sign in to reply to this discussion</p>
+                  <Link href="/signin" className="cta small">
+                    Sign In
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

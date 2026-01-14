@@ -6,6 +6,8 @@ import { useRouter } from "next/router";
 import MinimalNav from "../components/MinimalNav";
 import { useProfile } from "../components/useProfile";
 import { useMemberships } from "../components/useMemberships";
+import { useBadge, BADGE_LEVELS, POINTS } from "../components/useBadge";
+import { BadgeIcon, BadgeProgress, ShareableBadgeCard, LevelRules } from "../components/BadgeDisplay";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -128,6 +130,115 @@ export default function AccountPage() {
     localStorage.setItem("savedMaterials", JSON.stringify(updated));
   };
 
+  // Calculate user stats for badge system
+  const userStats = useMemo(() => {
+    const threadsStarted = conversations.filter((c) => c.type === "started").length;
+    const repliesMade = conversations.filter((c) => c.type === "replied").length;
+
+    return {
+      groupsJoined: memberships.length,
+      eventsSaved: rsvps.length,
+      materialsSaved: savedMaterials.length,
+      threadsStarted,
+      repliesMade,
+    };
+  }, [memberships.length, rsvps.length, savedMaterials.length, conversations]);
+
+  // Get badge info
+  const badgeInfo = useBadge(userStats);
+
+  // Generate AI recommendations based on user's current activity
+  const recommendations = useMemo(() => {
+    const recs = [];
+
+    // Priority 1: Join a group if none joined
+    if (userStats.groupsJoined === 0) {
+      recs.push({
+        id: "join-group",
+        icon: "👥",
+        title: "Join your first group",
+        description: `Join a language group to connect with other learners and earn +${POINTS.GROUP_JOIN} points!`,
+        points: POINTS.GROUP_JOIN,
+        link: "/groups",
+        linkText: "Browse Groups",
+        priority: 1,
+      });
+    }
+
+    // Priority 2: Save an event
+    if (userStats.eventsSaved === 0) {
+      recs.push({
+        id: "save-event",
+        icon: "📅",
+        title: "Save an upcoming event",
+        description: `RSVP to a live session or class to earn +${POINTS.EVENT_SAVE} points and get reminders!`,
+        points: POINTS.EVENT_SAVE,
+        link: "/calendar",
+        linkText: "View Calendar",
+        priority: 2,
+      });
+    }
+
+    // Priority 3: Start a discussion
+    if (userStats.threadsStarted === 0) {
+      recs.push({
+        id: "start-discussion",
+        icon: "💬",
+        title: "Start a discussion",
+        description: `Share your thoughts or ask a question to earn +${POINTS.THREAD_START} points!`,
+        points: POINTS.THREAD_START,
+        link: memberships.length > 0 ? `/groups/${memberships[0].groupSlug}` : "/groups",
+        linkText: "Go to Group",
+        priority: 3,
+      });
+    }
+
+    // Priority 4: Reply to discussions
+    if (userStats.repliesMade < 3) {
+      recs.push({
+        id: "reply-discussion",
+        icon: "↩️",
+        title: "Reply to a topic",
+        description: `Engage with others by replying to discussions. Each reply earns +${POINTS.THREAD_REPLY} points!`,
+        points: POINTS.THREAD_REPLY,
+        link: memberships.length > 0 ? `/groups/${memberships[0].groupSlug}` : "/groups",
+        linkText: "Join Discussions",
+        priority: 4,
+      });
+    }
+
+    // Priority 5: Save materials
+    if (userStats.materialsSaved < 3) {
+      recs.push({
+        id: "save-materials",
+        icon: "📚",
+        title: "Save learning materials",
+        description: `Build your study library by saving videos and articles. Each save earns +${POINTS.MATERIAL_SAVE} points!`,
+        points: POINTS.MATERIAL_SAVE,
+        link: "/competitions",
+        linkText: "Browse Materials",
+        priority: 5,
+      });
+    }
+
+    // Priority 6: Join more groups
+    if (userStats.groupsJoined > 0 && userStats.groupsJoined < 3) {
+      recs.push({
+        id: "more-groups",
+        icon: "🌍",
+        title: "Explore more languages",
+        description: `Try joining another language group! Each group earns +${POINTS.GROUP_JOIN} points.`,
+        points: POINTS.GROUP_JOIN,
+        link: "/groups",
+        linkText: "Find Groups",
+        priority: 6,
+      });
+    }
+
+    // Sort by priority and take top 3
+    return recs.sort((a, b) => a.priority - b.priority).slice(0, 3);
+  }, [userStats, memberships]);
+
   if (status === "loading") {
     return (
       <div className="minimal-page">
@@ -159,7 +270,10 @@ export default function AccountPage() {
           <section className="account-header">
             <div className="account-welcome">
               <p className="minimal-label">Your Dashboard</p>
-              <h1>Welcome, {displayName}</h1>
+              <h1 className="welcome-with-badge">
+                Welcome, {displayName}
+                <BadgeIcon badge={badgeInfo.badge} size="medium" />
+              </h1>
               <p className="account-subtitle">
                 Manage your groups, track saved materials, and see upcoming events.
               </p>
@@ -167,6 +281,47 @@ export default function AccountPage() {
             <button className="account-signout" onClick={() => signOut({ callbackUrl: "/" })}>
               Sign Out
             </button>
+          </section>
+
+          {/* Badge Progress Section */}
+          <section className="badge-section">
+            <div className="badge-main">
+              <div className="badge-display">
+                <BadgeIcon badge={badgeInfo.badge} size="large" showName />
+                <div className="badge-info">
+                  <p className="badge-level-text">Level {badgeInfo.badge.level}</p>
+                  <p className="badge-points">{badgeInfo.points} points earned</p>
+                  <p className="badge-description">{badgeInfo.badge.description}</p>
+                </div>
+              </div>
+              <BadgeProgress
+                progress={badgeInfo.progress}
+                currentBadge={badgeInfo.badge}
+                nextBadge={badgeInfo.nextBadge}
+                pointsToNext={badgeInfo.pointsToNext}
+              />
+            </div>
+
+            {/* AI Recommendations */}
+            {recommendations.length > 0 && (
+              <div className="badge-recommendations">
+                <h3 className="recommendations-title">Level Up Faster</h3>
+                <div className="recommendations-list">
+                  {recommendations.map((rec) => (
+                    <div key={rec.id} className="recommendation-card">
+                      <span className="rec-icon">{rec.icon}</span>
+                      <div className="rec-content">
+                        <h4>{rec.title}</h4>
+                        <p>{rec.description}</p>
+                      </div>
+                      <Link href={rec.link} className="rec-action">
+                        {rec.linkText} →
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Quick Stats */}
@@ -196,6 +351,12 @@ export default function AccountPage() {
               onClick={() => setActiveTab("overview")}
             >
               Overview
+            </button>
+            <button
+              className={`account-tab ${activeTab === "badge" ? "active" : ""}`}
+              onClick={() => setActiveTab("badge")}
+            >
+              My Badge
             </button>
             <button
               className={`account-tab ${activeTab === "materials" ? "active" : ""}`}
@@ -334,6 +495,71 @@ export default function AccountPage() {
                     </div>
                   )}
                 </section>
+              </div>
+            )}
+
+            {activeTab === "badge" && (
+              <div className="badge-tab-content">
+                <div className="badge-tab-grid">
+                  {/* Shareable Badge Card */}
+                  <div className="badge-card-section">
+                    <h2>Your Badge</h2>
+                    <p className="section-desc">Share your achievement with friends!</p>
+                    <ShareableBadgeCard
+                      badge={badgeInfo.badge}
+                      userName={displayName}
+                      points={badgeInfo.points}
+                    />
+                  </div>
+
+                  {/* Level Rules */}
+                  <div className="badge-rules-section">
+                    <LevelRules />
+
+                    {/* Points Breakdown */}
+                    <div className="points-breakdown-section">
+                      <h4>Your Points Breakdown</h4>
+                      <div className="breakdown-grid">
+                        <div className="breakdown-row">
+                          <span className="breakdown-icon">👥</span>
+                          <span className="breakdown-label">Groups Joined</span>
+                          <span className="breakdown-calc">{userStats.groupsJoined} × {POINTS.GROUP_JOIN}</span>
+                          <span className="breakdown-total">{userStats.groupsJoined * POINTS.GROUP_JOIN} pts</span>
+                        </div>
+                        <div className="breakdown-row">
+                          <span className="breakdown-icon">📅</span>
+                          <span className="breakdown-label">Events Saved</span>
+                          <span className="breakdown-calc">{userStats.eventsSaved} × {POINTS.EVENT_SAVE}</span>
+                          <span className="breakdown-total">{userStats.eventsSaved * POINTS.EVENT_SAVE} pts</span>
+                        </div>
+                        <div className="breakdown-row">
+                          <span className="breakdown-icon">📚</span>
+                          <span className="breakdown-label">Materials Saved</span>
+                          <span className="breakdown-calc">{userStats.materialsSaved} × {POINTS.MATERIAL_SAVE}</span>
+                          <span className="breakdown-total">{userStats.materialsSaved * POINTS.MATERIAL_SAVE} pts</span>
+                        </div>
+                        <div className="breakdown-row">
+                          <span className="breakdown-icon">💬</span>
+                          <span className="breakdown-label">Topics Started</span>
+                          <span className="breakdown-calc">{userStats.threadsStarted} × {POINTS.THREAD_START}</span>
+                          <span className="breakdown-total">{userStats.threadsStarted * POINTS.THREAD_START} pts</span>
+                        </div>
+                        <div className="breakdown-row">
+                          <span className="breakdown-icon">↩️</span>
+                          <span className="breakdown-label">Replies Made</span>
+                          <span className="breakdown-calc">{userStats.repliesMade} × {POINTS.THREAD_REPLY}</span>
+                          <span className="breakdown-total">{userStats.repliesMade * POINTS.THREAD_REPLY} pts</span>
+                        </div>
+                        <div className="breakdown-row total">
+                          <span className="breakdown-icon">🏆</span>
+                          <span className="breakdown-label">Total Points</span>
+                          <span className="breakdown-calc"></span>
+                          <span className="breakdown-total">{badgeInfo.points} pts</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
