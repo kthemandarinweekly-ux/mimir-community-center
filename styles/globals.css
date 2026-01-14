@@ -5110,11 +5110,11 @@ p {
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #58cc02 0%, #46a302 100%);
+  background: linear-gradient(135deg, #FFB7C5 0%, #FF8FA3 100%);
   border-radius: 16px;
   flex: 1;
   min-width: 280px;
-  box-shadow: 0 4px 14px rgba(88, 204, 2, 0.3);
+  box-shadow: 0 4px 14px rgba(255, 143, 163, 0.3);
 }
 
 .badge-hero-left {
@@ -5289,9 +5289,9 @@ p {
 }
 
 .action-card:hover {
-  border-color: #58cc02;
+  border-color: #FF8FA3;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(88, 204, 2, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 143, 163, 0.25);
 }
 
 .action-icon {
@@ -5308,8 +5308,8 @@ p {
 .action-points {
   font-size: 12px;
   font-weight: 700;
-  color: #58cc02;
-  background: #e8f7e0;
+  color: #E85A71;
+  background: #FFF0F3;
   padding: 4px 10px;
   border-radius: 20px;
 }
