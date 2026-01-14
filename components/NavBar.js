@@ -17,16 +17,23 @@ export default function NavBar({ action }) {
 
     const fetchStats = async () => {
       try {
-        // Get RSVPs count
-        const rsvpRes = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
+        // Fetch all stats in parallel
+        const [rsvpRes, threadsRes, repliesRes] = await Promise.all([
+          fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`),
+          fetch(`/api/threads?authorEmail=${encodeURIComponent(session.user.email)}`),
+          fetch(`/api/replies?authorEmail=${encodeURIComponent(session.user.email)}`),
+        ]);
+
         const rsvpData = rsvpRes.ok ? await rsvpRes.json() : { rsvps: [] };
+        const threadsData = threadsRes.ok ? await threadsRes.json() : { threads: [] };
+        const repliesData = repliesRes.ok ? await repliesRes.json() : { replies: [] };
 
         setUserStats({
           groupsJoined: memberships.length,
           eventsSaved: rsvpData.rsvps?.length || 0,
           materialsSaved: 0,
-          threadsStarted: 0,
-          repliesMade: 0,
+          threadsStarted: threadsData.threads?.length || 0,
+          repliesMade: repliesData.replies?.length || 0,
         });
       } catch (e) {
         console.error("Failed to fetch stats:", e);
