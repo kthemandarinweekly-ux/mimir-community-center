@@ -2622,6 +2622,7 @@ p {
 
 .minimal-links {
   display: flex;
+  align-items: center;
   gap: 28px;
   font-size: 0.9rem;
   color: #6a6070;

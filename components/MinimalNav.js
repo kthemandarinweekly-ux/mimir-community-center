@@ -8,7 +8,7 @@ export default function MinimalNav() {
   return (
     <header className="minimal-nav">
       <Link className="minimal-brand" href="/">
-        Open Debate
+        Mimir Language Community
       </Link>
       <nav className="minimal-links">
         <Link href="/">Home</Link>
