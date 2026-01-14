@@ -70,6 +70,11 @@ export default function GroupDetailPage() {
   const [loadingThreads, setLoadingThreads] = useState(false);
   const [error, setError] = useState("");
   const [joinLoading, setJoinLoading] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [rsvps, setRsvps] = useState([]);
+  const [rsvpLoading, setRsvpLoading] = useState(false);
+  const [showTopicsModal, setShowTopicsModal] = useState(false);
+  const [showMaterialsModal, setShowMaterialsModal] = useState(false);
 
   // Extract language from slug (e.g., "intermediate-chinese" -> "Chinese")
   const getLanguageFromSlug = (s) => {
@@ -241,6 +246,90 @@ export default function GroupDetailPage() {
     fetchThreads();
   };
 
+  // Fetch user RSVPs
+  useEffect(() => {
+    if (!session?.user?.email) return;
+
+    const fetchRsvps = async () => {
+      try {
+        const response = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRsvps(data.rsvps || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch RSVPs:", error);
+      }
+    };
+
+    fetchRsvps();
+  }, [session?.user?.email]);
+
+  const hasRsvp = (eventId) => rsvps.some((rsvp) => rsvp.eventId === eventId);
+  const getRsvpStatus = (eventId) => rsvps.find((r) => r.eventId === eventId)?.status || null;
+
+  const handleSaveEvent = async (event) => {
+    if (!session?.user?.email) {
+      router.push("/signin");
+      return;
+    }
+
+    setRsvpLoading(true);
+    try {
+      const currentStatus = getRsvpStatus(event.id);
+
+      if (currentStatus) {
+        // Remove RSVP
+        await fetch("/api/rsvps", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventId: event.id,
+            userEmail: session.user.email,
+          }),
+        });
+      } else {
+        // Add RSVP
+        await fetch("/api/rsvps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventId: event.id,
+            eventTitle: event.title,
+            eventStart: event.start,
+            eventEnd: event.end,
+            eventDescription: event.description,
+            eventLocation: event.location,
+            eventLink: event.link,
+            userEmail: session.user.email,
+            userName: session.user.name || "",
+            status: "saved",
+          }),
+        });
+      }
+
+      // Refresh RSVPs
+      const response = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRsvps(data.rsvps || []);
+      }
+    } catch (error) {
+      console.error("Failed to save event:", error);
+    } finally {
+      setRsvpLoading(false);
+    }
+  };
+
+  const formatTime = (value) => {
+    if (!value) return "TBD";
+    return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const formatDate = (value) => {
+    if (!value) return "TBD";
+    return new Date(value).toLocaleDateString();
+  };
 
   const handleJoinLeave = async () => {
     if (!isLoggedIn) {
@@ -319,7 +408,12 @@ export default function GroupDetailPage() {
             <div className="detail-cards">
               {upcomingEvents.length > 0 ? (
                 upcomingEvents.map((event, index) => (
-                  <article key={event.id} className="detail-card">
+                  <article
+                    key={event.id}
+                    className="detail-card clickable"
+                    onClick={() => setSelectedEvent(event)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <p className="label">{index === 0 ? "Next" : "Coming soon"}</p>
                     <h3>
                       {event.start
@@ -331,6 +425,7 @@ export default function GroupDetailPage() {
                       · {event.title}
                     </h3>
                     <p>{event.type || "Live session"} · {event.location || "Online"}</p>
+                    {hasRsvp(event.id) && <span className="saved-badge">Saved ✓</span>}
                   </article>
                 ))
               ) : (
@@ -356,9 +451,9 @@ export default function GroupDetailPage() {
                 <p className="eyebrow">Materials</p>
                 <h2>Watch &amp; read</h2>
               </div>
-              <Link className="cta ghost small" href="/competitions">
+              <button className="cta ghost small" type="button" onClick={() => setShowMaterialsModal(true)}>
                 Check more materials
-              </Link>
+              </button>
             </div>
             <div className="materials-grid">
               <div className="materials-column">
@@ -417,7 +512,7 @@ export default function GroupDetailPage() {
                 <p className="eyebrow">Discussion</p>
                 <h2>Topics &amp; Replies</h2>
               </div>
-              <button className="cta ghost small" type="button">
+              <button className="cta ghost small" type="button" onClick={() => setShowTopicsModal(true)}>
                 Check out topics
               </button>
               {isLoggedIn && (
@@ -440,6 +535,14 @@ export default function GroupDetailPage() {
                   value={newThread.body}
                   onChange={(event) => setNewThread({ ...newThread, body: event.target.value })}
                 />
+                <button
+                  className="thread-post-btn"
+                  type="button"
+                  onClick={handleCreateThread}
+                  disabled={!newThread.title.trim()}
+                >
+                  Post Topic
+                </button>
               </div>
             )}
             {error && <p className="label">{error}</p>}
@@ -476,11 +579,11 @@ export default function GroupDetailPage() {
             <div className="stat-grid two">
               <div>
                 <p className="label">Members</p>
-                <p className="value">{members.length || displayGroup.memberCount || "--"}</p>
+                <p className="value">{members.length || 0}</p>
               </div>
               <div>
-                <p className="label">Online now</p>
-                <p className="value">{displayGroup.onlineCount || "--"}</p>
+                <p className="label">Topics</p>
+                <p className="value">{threads.length || 0}</p>
               </div>
             </div>
             <div className="tag-stack">
@@ -526,6 +629,182 @@ export default function GroupDetailPage() {
 
         </aside>
       </main>
+
+      {/* Event Modal */}
+      {selectedEvent && (
+        <div className="event-overlay" onClick={() => setSelectedEvent(null)}>
+          <div className="event-modal-box" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="event-close"
+              type="button"
+              onClick={() => setSelectedEvent(null)}
+            >
+              ×
+            </button>
+            <div className="event-modal-header">
+              <p className="minimal-label">{selectedEvent.type || "Event"}</p>
+              {selectedEvent.language && (
+                <span className={`event-language-badge lang-${selectedEvent.language.toLowerCase()}`}>
+                  {selectedEvent.language}
+                </span>
+              )}
+            </div>
+            <h2>{selectedEvent.title}</h2>
+            <p className="event-description">{selectedEvent.description || "Event details."}</p>
+            <div className="event-details">
+              <div>
+                <span className="event-detail-label">Date</span>
+                <span>{formatDate(selectedEvent.start)}</span>
+              </div>
+              <div>
+                <span className="event-detail-label">Time</span>
+                <span>{formatTime(selectedEvent.start)} - {formatTime(selectedEvent.end)}</span>
+              </div>
+              <div>
+                <span className="event-detail-label">Location</span>
+                <span>{selectedEvent.location || "Online"}</span>
+              </div>
+            </div>
+            {selectedEvent.link && (
+              <a
+                className="event-zoom-btn"
+                href={selectedEvent.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Join Meeting
+              </a>
+            )}
+            <div className="event-actions">
+              {isLoggedIn ? (
+                <button
+                  className="event-btn primary"
+                  type="button"
+                  onClick={() => handleSaveEvent(selectedEvent)}
+                  disabled={rsvpLoading}
+                >
+                  {hasRsvp(selectedEvent.id) ? "Saved ✓" : "Save event"}
+                </button>
+              ) : (
+                <Link className="event-btn primary" href="/signin">
+                  Sign in to save
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Topics Modal */}
+      {showTopicsModal && (
+        <div className="event-overlay" onClick={() => setShowTopicsModal(false)}>
+          <div className="event-modal-box modal-large" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="event-close"
+              type="button"
+              onClick={() => setShowTopicsModal(false)}
+            >
+              ×
+            </button>
+            <div className="event-modal-header">
+              <p className="minimal-label">Discussion</p>
+            </div>
+            <h2>All Topics</h2>
+            <p className="modal-subtitle">{threads.length} topic{threads.length !== 1 ? "s" : ""} in this group</p>
+            <div className="modal-list">
+              {threads.length === 0 ? (
+                <p className="modal-empty">No topics yet. Be the first to start a discussion!</p>
+              ) : (
+                threads.map((thread) => (
+                  <div key={thread.id} className="modal-list-item">
+                    <img
+                      className="thread-avatar"
+                      src={`/avatars/${thread.authorAvatar || "sunrise"}.svg`}
+                      alt={`${thread.authorName} avatar`}
+                    />
+                    <div className="modal-item-content">
+                      <h3>{thread.title}</h3>
+                      <p className="modal-item-meta">
+                        {thread.authorName} · {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "Just now"}
+                      </p>
+                      {thread.body && <p className="modal-item-preview">{thread.body}</p>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Materials Modal */}
+      {showMaterialsModal && (
+        <div className="event-overlay" onClick={() => setShowMaterialsModal(false)}>
+          <div className="event-modal-box modal-large" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="event-close"
+              type="button"
+              onClick={() => setShowMaterialsModal(false)}
+            >
+              ×
+            </button>
+            <div className="event-modal-header">
+              <p className="minimal-label">Materials</p>
+            </div>
+            <h2>All Materials</h2>
+            <p className="modal-subtitle">{materials.length} material{materials.length !== 1 ? "s" : ""} available</p>
+            <div className="modal-materials-grid">
+              <div className="modal-materials-column">
+                <h3>Watch</h3>
+                <ul className="modal-materials-list">
+                  {materials.filter((m) => m.type === "video").length === 0 ? (
+                    <li className="modal-empty-item">No videos available yet</li>
+                  ) : (
+                    materials.filter((m) => m.type === "video").map((material) => (
+                      <li key={material.id}>
+                        {material.fileUrl ? (
+                          <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
+                            {material.title}
+                          </a>
+                        ) : (
+                          <span>{material.title}</span>
+                        )}
+                        {material.description && <p className="material-desc">{material.description}</p>}
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+              <div className="modal-materials-column">
+                <h3>Read</h3>
+                <ul className="modal-materials-list">
+                  {materials.filter((m) => m.type !== "video").length === 0 ? (
+                    <li className="modal-empty-item">No reading materials available yet</li>
+                  ) : (
+                    materials.filter((m) => m.type !== "video").map((material) => (
+                      <li key={material.id}>
+                        {material.fileUrl ? (
+                          <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
+                            {material.title}
+                          </a>
+                        ) : (
+                          <span>{material.title}</span>
+                        )}
+                        {material.description && <p className="material-desc">{material.description}</p>}
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <Link href="/competitions" className="cta ghost">
+                Browse all materials
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

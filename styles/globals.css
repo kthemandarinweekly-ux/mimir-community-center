@@ -4572,3 +4572,197 @@ p {
     border-radius: 20px;
   }
 }
+
+/* Thread Post Button */
+.thread-post-btn {
+  align-self: flex-end;
+  padding: 10px 24px;
+  background: var(--terracotta);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.thread-post-btn:hover:not(:disabled) {
+  background: #c43d5a;
+  transform: translateY(-1px);
+}
+
+.thread-post-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.thread-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Saved Badge on Event Cards */
+.saved-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: rgba(122, 92, 255, 0.1);
+  color: var(--moss);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 12px;
+}
+
+/* Large Modal Variant */
+.modal-large {
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-subtitle {
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* Modal List Styles */
+.modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-list-item {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  background: var(--sand);
+  border-radius: 12px;
+}
+
+.modal-list-item .thread-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.modal-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-item-content h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+
+.modal-item-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+
+.modal-item-preview {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-empty {
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+/* Modal Materials Grid */
+.modal-materials-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.modal-materials-column h3 {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+}
+
+.modal-materials-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-materials-list li {
+  padding: 12px 16px;
+  background: var(--sand);
+  border-radius: 8px;
+}
+
+.modal-materials-list li a {
+  color: var(--moss);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.modal-materials-list li a:hover {
+  text-decoration: underline;
+}
+
+.modal-materials-list .material-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 4px 0 0;
+}
+
+.modal-empty-item {
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Clickable detail card */
+.detail-card.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.detail-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 600px) {
+  .modal-materials-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .modal-large {
+    max-width: 95%;
+    margin: 20px;
+  }
+}

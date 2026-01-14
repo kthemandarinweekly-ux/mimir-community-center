@@ -105,14 +105,17 @@ export default function CalendarPage() {
   };
 
   const handleRsvp = async (event, newStatus = "going") => {
-    if (!session?.user?.email) return;
+    if (!session?.user?.email) {
+      alert("Please sign in to save events");
+      return;
+    }
 
     setRsvpLoading(true);
     try {
       const currentStatus = getRsvpStatus(event.id);
 
       if (currentStatus === newStatus) {
-        await fetch("/api/rsvps", {
+        const deleteRes = await fetch("/api/rsvps", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -120,8 +123,14 @@ export default function CalendarPage() {
             userEmail: session.user.email,
           }),
         });
+        if (!deleteRes.ok) {
+          const errData = await deleteRes.json().catch(() => ({}));
+          console.error("Delete RSVP failed:", errData);
+          alert("Failed to remove saved event. Please try again.");
+          return;
+        }
       } else {
-        await fetch("/api/rsvps", {
+        const postRes = await fetch("/api/rsvps", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -137,6 +146,12 @@ export default function CalendarPage() {
             status: newStatus,
           }),
         });
+        if (!postRes.ok) {
+          const errData = await postRes.json().catch(() => ({}));
+          console.error("Create RSVP failed:", errData);
+          alert("Failed to save event. Please check if your RSVPs table is set up correctly in Airtable.");
+          return;
+        }
       }
 
       const response = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
@@ -146,6 +161,7 @@ export default function CalendarPage() {
       }
     } catch (error) {
       console.error("Failed to update RSVP:", error);
+      alert("An error occurred. Please try again.");
     } finally {
       setRsvpLoading(false);
     }
