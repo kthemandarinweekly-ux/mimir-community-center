@@ -130,7 +130,24 @@ export default async function handler(req, res) {
         }
       }
 
-      // Create new RSVP
+      // Create new RSVP - only include fields that have values
+      const fields = {
+        EventId: eventId,
+        UserEmail: userEmail,
+      };
+
+      // Only add optional fields if they have values
+      if (eventTitle) fields.EventTitle = eventTitle;
+      if (eventStart) fields.EventStart = eventStart;
+      if (eventEnd) fields.EventEnd = eventEnd;
+      if (eventDescription) fields.EventDescription = eventDescription;
+      if (eventLocation) fields.EventLocation = eventLocation;
+      if (eventLink) fields.EventLink = eventLink;
+      if (userName) fields.UserName = userName;
+      if (status) fields.Status = status;
+      if (typeof reminderRequested === "boolean") fields.ReminderRequested = reminderRequested;
+      fields.CreatedAt = new Date().toISOString();
+
       const response = await fetch(baseUrl, {
         method: "POST",
         headers: {
@@ -138,36 +155,25 @@ export default async function handler(req, res) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          records: [
-            {
-              fields: {
-                EventId: eventId,
-                EventTitle: eventTitle || "",
-                EventStart: eventStart || null,
-                EventEnd: eventEnd || null,
-                EventDescription: eventDescription || "",
-                EventLocation: eventLocation || "",
-                EventLink: eventLink || "",
-                UserEmail: userEmail,
-                UserName: userName || "",
-                Status: status || "going",
-                ReminderRequested: typeof reminderRequested === "boolean" ? reminderRequested : false,
-                CreatedAt: new Date().toISOString(),
-              },
-            },
-          ],
+          records: [{ fields }],
         }),
       });
 
       if (!response.ok) {
-        res.status(response.status).json({ error: "Failed to create RSVP" });
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Airtable create error:", errorData);
+        res.status(response.status).json({
+          error: "Failed to create RSVP",
+          details: errorData.error?.message || JSON.stringify(errorData)
+        });
         return;
       }
 
       const data = await response.json();
       res.status(201).json({ id: data.records?.[0]?.id });
     } catch (error) {
-      res.status(500).json({ error: "Failed to create/update RSVP" });
+      console.error("RSVP creation error:", error);
+      res.status(500).json({ error: "Failed to create/update RSVP", details: error.message });
     }
     return;
   }

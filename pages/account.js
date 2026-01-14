@@ -283,41 +283,79 @@ export default function AccountPage() {
             </button>
           </section>
 
-          {/* Badge Progress Section */}
-          <section className="badge-section">
-            <div className="badge-main">
-              <div className="badge-display">
-                <BadgeIcon badge={badgeInfo.badge} size="large" showName />
-                <div className="badge-info">
-                  <p className="badge-level-text">Level {badgeInfo.badge.level}</p>
-                  <p className="badge-points">{badgeInfo.points} points earned</p>
-                  <p className="badge-description">{badgeInfo.badge.description}</p>
+          {/* Badge Progress Section - Duolingo-inspired */}
+          <section className="badge-section-duo">
+            <div className="badge-hero-card">
+              <div className="badge-hero-left">
+                <div
+                  className="badge-hero-icon"
+                  style={{
+                    background: `linear-gradient(145deg, ${badgeInfo.badge.gradientStart} 0%, ${badgeInfo.badge.gradientEnd} 100%)`,
+                  }}
+                >
+                  <span className="badge-emoji">{badgeInfo.badge.emoji}</span>
+                </div>
+                <div className="badge-hero-info">
+                  <span className="badge-hero-level">Level {badgeInfo.badge.level}</span>
+                  <h2 className="badge-hero-name">{badgeInfo.badge.name}</h2>
                 </div>
               </div>
-              <BadgeProgress
-                progress={badgeInfo.progress}
-                currentBadge={badgeInfo.badge}
-                nextBadge={badgeInfo.nextBadge}
-                pointsToNext={badgeInfo.pointsToNext}
-              />
+              <div className="badge-hero-right">
+                <div className="badge-points-display">
+                  <span className="points-number">{badgeInfo.points}</span>
+                  <span className="points-label">XP</span>
+                </div>
+              </div>
             </div>
 
-            {/* AI Recommendations */}
+            {/* Progress to Next Level */}
+            {badgeInfo.nextBadge && (
+              <div className="badge-progress-card">
+                <div className="progress-header">
+                  <span className="progress-title">Progress to {badgeInfo.nextBadge.name}</span>
+                  <span className="progress-xp">{badgeInfo.pointsToNext} XP to go</span>
+                </div>
+                <div className="progress-track">
+                  <div
+                    className="progress-fill"
+                    style={{
+                      width: `${badgeInfo.progress}%`,
+                      background: `linear-gradient(90deg, ${badgeInfo.badge.color}, ${badgeInfo.nextBadge.color})`,
+                    }}
+                  />
+                </div>
+                <div className="progress-badges">
+                  <div className="progress-badge current">
+                    <span
+                      className="mini-badge-icon"
+                      style={{ background: badgeInfo.badge.color }}
+                    >
+                      {badgeInfo.badge.emoji}
+                    </span>
+                  </div>
+                  <div className="progress-badge next">
+                    <span
+                      className="mini-badge-icon"
+                      style={{ background: badgeInfo.nextBadge.color }}
+                    >
+                      {badgeInfo.nextBadge.emoji}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions to Level Up */}
             {recommendations.length > 0 && (
-              <div className="badge-recommendations">
-                <h3 className="recommendations-title">Level Up Faster</h3>
-                <div className="recommendations-list">
+              <div className="level-up-actions">
+                <h3 className="actions-title">Quick ways to earn XP</h3>
+                <div className="actions-grid">
                   {recommendations.map((rec) => (
-                    <div key={rec.id} className="recommendation-card">
-                      <span className="rec-icon">{rec.icon}</span>
-                      <div className="rec-content">
-                        <h4>{rec.title}</h4>
-                        <p>{rec.description}</p>
-                      </div>
-                      <Link href={rec.link} className="rec-action">
-                        {rec.linkText} →
-                      </Link>
-                    </div>
+                    <Link key={rec.id} href={rec.link} className="action-card">
+                      <span className="action-icon">{rec.icon}</span>
+                      <span className="action-label">{rec.title}</span>
+                      <span className="action-points">+{rec.points} XP</span>
+                    </Link>
                   ))}
                 </div>
               </div>

@@ -16,9 +16,9 @@ export const BADGE_LEVELS = [
     name: "Newcomer",
     minPoints: 0,
     maxPoints: 29,
-    color: "#22C55E", // Green
-    gradientStart: "#22C55E",
-    gradientEnd: "#16A34A",
+    color: "#58CC02", // Duolingo Green
+    gradientStart: "#58CC02",
+    gradientEnd: "#46A302",
     emoji: "🌱",
     description: "Just getting started on your language journey",
   },
@@ -27,9 +27,9 @@ export const BADGE_LEVELS = [
     name: "Explorer",
     minPoints: 30,
     maxPoints: 99,
-    color: "#3B82F6", // Blue
-    gradientStart: "#3B82F6",
-    gradientEnd: "#2563EB",
+    color: "#1CB0F6", // Duolingo Blue
+    gradientStart: "#1CB0F6",
+    gradientEnd: "#0A8DCC",
     emoji: "🔍",
     description: "Actively exploring and engaging with the community",
   },
@@ -38,9 +38,9 @@ export const BADGE_LEVELS = [
     name: "Contributor",
     minPoints: 100,
     maxPoints: 249,
-    color: "#F59E0B", // Yellow/Orange
-    gradientStart: "#F59E0B",
-    gradientEnd: "#D97706",
+    color: "#FF9600", // Duolingo Orange
+    gradientStart: "#FF9600",
+    gradientEnd: "#E58600",
     emoji: "⭐",
     description: "A valuable contributor to discussions and learning",
   },
@@ -49,9 +49,9 @@ export const BADGE_LEVELS = [
     name: "Champion",
     minPoints: 250,
     maxPoints: 499,
-    color: "#EF4444", // Red
-    gradientStart: "#EF4444",
-    gradientEnd: "#DC2626",
+    color: "#FF4B4B", // Duolingo Red
+    gradientStart: "#FF4B4B",
+    gradientEnd: "#E53E3E",
     emoji: "🏆",
     description: "A community champion helping others succeed",
   },
@@ -60,9 +60,9 @@ export const BADGE_LEVELS = [
     name: "Legend",
     minPoints: 500,
     maxPoints: Infinity,
-    color: "#8B5CF6", // Purple
-    gradientStart: "#8B5CF6",
-    gradientEnd: "#7C3AED",
+    color: "#CE82FF", // Duolingo Purple
+    gradientStart: "#CE82FF",
+    gradientEnd: "#A855F7",
     emoji: "💎",
     description: "A legendary member and language learning master",
   },

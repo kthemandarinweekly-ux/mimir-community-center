@@ -704,6 +704,85 @@ p {
   font-size: 0.95rem;
 }
 
+/* Thread Badge Icon */
+.thread-avatar-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thread-badge-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.thread-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.thread-content h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.thread-author-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.thread-meta-dot {
+  margin: 0 4px;
+}
+
+.thread-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.thread-reply-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.thread-reply-count svg {
+  opacity: 0.7;
+}
+
+/* Nav Badge Icon */
+.nav-badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 14px;
+  margin-right: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Join Error */
+.join-error {
+  color: #dc2626;
+  font-size: 13px;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
 .comment-box {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -4050,14 +4129,13 @@ p {
 /* Nav link styles */
 .nav-signin-link,
 .nav-account-link {
+  display: inline-flex;
+  align-items: center;
   font-weight: 500;
+  color: var(--ink);
 }
 
 .nav-signin-link {
-  color: #7a5cff;
-}
-
-.nav-account-link {
   color: #7a5cff;
 }
 
@@ -5015,61 +5093,230 @@ p {
    ============================================= */
 
 /* Badge Section on Dashboard - Full Width Redesign */
-.badge-section {
+/* =============================================
+   DUOLINGO-INSPIRED BADGE SECTION
+   ============================================= */
+
+.badge-section-duo {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+/* Main Badge Hero Card */
+.badge-hero-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #58cc02 0%, #46a302 100%);
+  border-radius: 16px;
+  flex: 1;
+  min-width: 280px;
+  box-shadow: 0 4px 14px rgba(88, 204, 2, 0.3);
+}
+
+.badge-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.badge-hero-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.badge-emoji {
+  font-size: 28px;
+}
+
+.badge-hero-info {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  margin-bottom: 32px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 24px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  gap: 2px;
 }
 
-/* Top banner with badge info */
-.badge-main {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 32px;
-  align-items: center;
-  padding: 32px 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.badge-hero-level {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.badge-hero-name {
+  font-size: 22px;
+  font-weight: 800;
   color: white;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.badge-display {
+.badge-hero-right {
+  text-align: right;
+}
+
+.badge-points-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 12px;
+}
+
+.points-number {
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+}
+
+.points-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Progress Card */
+.badge-progress-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px 20px;
+  flex: 1;
+  min-width: 260px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.progress-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.progress-xp {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.progress-track {
+  height: 12px;
+  background: #e5e5e5;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.progress-badges {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.progress-badge {
   display: flex;
   align-items: center;
-  gap: 24px;
 }
 
-.badge-info {
-  flex: 1;
+.mini-badge-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.badge-level-text {
+/* Level Up Actions */
+.level-up-actions {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.actions-title {
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0 0 6px;
+  letter-spacing: 1px;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
 }
 
-.badge-points {
-  font-size: 36px;
-  font-weight: 800;
-  color: white;
-  margin: 0 0 8px;
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
 }
 
-.badge-description {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
-  line-height: 1.5;
-  max-width: 300px;
+.action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e5e5e5;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.action-card:hover {
+  border-color: #58cc02;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(88, 204, 2, 0.2);
+}
+
+.action-icon {
+  font-size: 24px;
+}
+
+.action-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+}
+
+.action-points {
+  font-size: 12px;
+  font-weight: 700;
+  color: #58cc02;
+  background: #e8f7e0;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* Legacy Badge Styles (kept for badge tab) */
+.badge-section {
+  display: none;
 }
 
 /* Welcome with Badge */
@@ -5079,57 +5326,71 @@ p {
   gap: 16px;
 }
 
-/* Badge Progress - Inside banner */
+/* Badge Progress Container (for badge tab) */
 .badge-progress-container {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  padding: 20px 24px;
-  border-radius: 16px;
-  min-width: 280px;
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 12px;
 }
 
 .badge-progress-labels {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .current-badge,
 .next-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: white;
+  color: var(--ink);
 }
 
 .badge-progress-bar {
-  height: 12px;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
+  height: 10px;
+  background: #e5e5e5;
+  border-radius: 5px;
   overflow: hidden;
 }
 
 .badge-progress-fill {
   height: 100%;
-  border-radius: 6px;
+  border-radius: 5px;
   transition: width 0.5s ease;
-  background: white !important;
 }
 
 .badge-progress-text {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
   text-align: center;
-  font-weight: 500;
 }
 
 .badge-max-level {
-  color: #ffd700;
+  color: #58cc02;
   font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .badge-section-duo {
+    flex-direction: column;
+  }
+
+  .badge-hero-card {
+    min-width: 100%;
+  }
+
+  .badge-progress-card {
+    min-width: 100%;
+  }
+
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* AI Recommendations - Horizontal cards below banner */

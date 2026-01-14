@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import NavBar from "../../components/NavBar";
 import { useProfile } from "../../components/useProfile";
 import { useMemberships } from "../../components/useMemberships";
+import { getBadgeLevel } from "../../components/useBadge";
 
 // Fallback group data
 const fallbackGroups = {
@@ -80,6 +81,8 @@ export default function GroupDetailPage() {
   const [newReply, setNewReply] = useState("");
   const [loadingReplies, setLoadingReplies] = useState(false);
   const [postingReply, setPostingReply] = useState(false);
+  const [threadReplyCounts, setThreadReplyCounts] = useState({});
+  const [joinError, setJoinError] = useState("");
 
   // Extract language from slug (e.g., "intermediate-chinese" -> "Chinese")
   const getLanguageFromSlug = (s) => {
@@ -174,7 +177,7 @@ export default function GroupDetailPage() {
     fetchMembers();
   }, [slug]);
 
-  // Fetch threads
+  // Fetch threads and their reply counts
   const fetchThreads = async () => {
     if (!slug) return;
     setLoadingThreads(true);
@@ -183,7 +186,25 @@ export default function GroupDetailPage() {
       const response = await fetch(`/api/threads?groupSlug=${slug}`);
       if (!response.ok) throw new Error("Failed to load threads");
       const data = await response.json();
-      setThreads(data.threads || []);
+      const threadList = data.threads || [];
+      setThreads(threadList);
+
+      // Fetch reply counts for each thread
+      const counts = {};
+      await Promise.all(
+        threadList.map(async (thread) => {
+          try {
+            const repliesRes = await fetch(`/api/replies?threadId=${thread.id}&countOnly=true`);
+            if (repliesRes.ok) {
+              const repliesData = await repliesRes.json();
+              counts[thread.id] = repliesData.count || repliesData.replies?.length || 0;
+            }
+          } catch (e) {
+            counts[thread.id] = 0;
+          }
+        })
+      );
+      setThreadReplyCounts(counts);
     } catch (err) {
       setError("Unable to load threads.");
     } finally {
@@ -405,10 +426,28 @@ export default function GroupDetailPage() {
       return;
     }
     setJoinLoading(true);
-    if (userIsMember) {
-      await leaveGroup(slug);
-    } else {
-      await joinGroup(slug, group?.name || "");
+    setJoinError("");
+    try {
+      if (userIsMember) {
+        const result = await leaveGroup(slug);
+        if (!result.success) {
+          setJoinError(result.error || "Failed to leave group");
+        }
+      } else {
+        const result = await joinGroup(slug, group?.name || displayGroup.name || "");
+        if (!result.success) {
+          setJoinError(result.error || "Failed to join group");
+        } else {
+          // Refresh members list after joining
+          const response = await fetch(`/api/memberships?groupSlug=${slug}`);
+          if (response.ok) {
+            const data = await response.json();
+            setMembers(data.memberships || []);
+          }
+        }
+      }
+    } catch (error) {
+      setJoinError("An error occurred. Please try again.");
     }
     setJoinLoading(false);
   };
@@ -619,29 +658,49 @@ export default function GroupDetailPage() {
               {threads.length === 0 && !loadingThreads && (
                 <p className="label">No topics yet. Be the first to start one.</p>
               )}
-              {threads.map((thread) => (
-                <div
-                  key={thread.id}
-                  className="thread-item clickable"
-                  onClick={() => handleOpenThread(thread)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <img
-                    className="thread-avatar"
-                    src={`/avatars/${thread.authorAvatar || "sunrise"}.svg`}
-                    alt={`${thread.authorName} avatar`}
-                  />
-                  <div>
-                    <h3>{thread.title}</h3>
-                    <p className="thread-meta">
-                      {thread.authorName} ·{" "}
-                      {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "Just now"}
-                    </p>
-                    <p className="thread-preview">{thread.body || "Click to open and reply"}</p>
+              {threads.map((thread) => {
+                // Calculate badge for thread author (simplified - assumes newcomer for demo)
+                const authorBadge = getBadgeLevel(0); // Default to newcomer
+                const replyCount = threadReplyCounts[thread.id] || 0;
+                return (
+                  <div
+                    key={thread.id}
+                    className="thread-item clickable"
+                    onClick={() => handleOpenThread(thread)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div className="thread-avatar-badge">
+                      <span
+                        className="thread-badge-icon"
+                        title={`${authorBadge.name} - Level ${authorBadge.level}`}
+                        style={{
+                          background: `linear-gradient(135deg, ${authorBadge.gradientStart} 0%, ${authorBadge.gradientEnd} 100%)`,
+                        }}
+                      >
+                        {authorBadge.emoji}
+                      </span>
+                    </div>
+                    <div className="thread-content">
+                      <h3>{thread.title}</h3>
+                      <p className="thread-meta">
+                        <span className="thread-author-name">{thread.authorName}</span>
+                        <span className="thread-meta-dot">·</span>
+                        {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "Just now"}
+                      </p>
+                      <p className="thread-preview">{thread.body || "Click to open and reply"}</p>
+                    </div>
+                    <div className="thread-stats">
+                      <span className="thread-reply-count">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        {replyCount}
+                      </span>
+                      <span className="thread-arrow">→</span>
+                    </div>
                   </div>
-                  <span className="thread-arrow">→</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
 
@@ -677,6 +736,7 @@ export default function GroupDetailPage() {
                 ? "Joined ✓"
                 : "Join this group"}
             </button>
+            {joinError && <p className="join-error">{joinError}</p>}
             {userIsMember && (
               <button
                 className="cta ghost wide leave-btn"

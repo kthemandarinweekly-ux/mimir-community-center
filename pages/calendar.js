@@ -149,7 +149,8 @@ export default function CalendarPage() {
         if (!postRes.ok) {
           const errData = await postRes.json().catch(() => ({}));
           console.error("Create RSVP failed:", errData);
-          alert("Failed to save event. Please check if your RSVPs table is set up correctly in Airtable.");
+          const details = errData.details || errData.error || "Unknown error";
+          alert(`Failed to save event: ${details}`);
           return;
         }
       }
