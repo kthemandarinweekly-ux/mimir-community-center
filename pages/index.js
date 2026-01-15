@@ -169,7 +169,6 @@ export default function Home() {
               </>
             )}
           </div>
-          <p className="cta-note">✨ Free forever. No credit card required.</p>
         </div>
       </section>
     </>
