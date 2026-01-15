@@ -25,9 +25,7 @@ export default function Home() {
 
         <main className="home-hero-content">
           <div className="home-hero-badge">🌟 Free to join</div>
-          <h1 className="home-title">
-            Learn languages through <span className="home-highlight">debate</span>
-          </h1>
+          <h1 className="home-title">Open Debate</h1>
           <p className="home-tagline">
             Join a global community. Discuss real topics. Build real fluency.
           </p>

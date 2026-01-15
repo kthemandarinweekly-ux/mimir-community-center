@@ -16,9 +16,9 @@ export const BADGE_LEVELS = [
     name: "Newcomer",
     minPoints: 0,
     maxPoints: 29,
-    color: "#58CC02", // Duolingo Green
-    gradientStart: "#58CC02",
-    gradientEnd: "#46A302",
+    color: "#FFD93D", // Yellow
+    gradientStart: "#FFD93D",
+    gradientEnd: "#E5C235",
     emoji: "🌱",
     description: "Just getting started on your language journey",
   },

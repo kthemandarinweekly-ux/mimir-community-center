@@ -5901,18 +5901,18 @@ p {
 .home-cta-primary {
   display: inline-block;
   padding: 16px 32px;
-  background: #58CC02;
-  color: #ffffff;
+  background: #FFD93D;
+  color: #333;
   border-radius: 16px;
   font-weight: 700;
   font-size: 1rem;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 0 #46a302;
+  box-shadow: 0 4px 0 #E5C235;
 }
 
 .home-cta-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 0 #46a302;
+  box-shadow: 0 6px 0 #E5C235;
 }
 
 .home-cta-secondary {
@@ -6129,7 +6129,7 @@ p {
 
 .home-step.step-pink { border-color: #FF8FA3; }
 .home-step.step-blue { border-color: #1CB0F6; }
-.home-step.step-green { border-color: #58CC02; }
+.home-step.step-green { border-color: #FFD93D; }
 .home-step.step-orange { border-color: #FF9600; }
 
 .step-number {
@@ -6150,7 +6150,7 @@ p {
 
 .step-pink .step-number { background: #FF8FA3; }
 .step-blue .step-number { background: #1CB0F6; }
-.step-green .step-number { background: #58CC02; }
+.step-green .step-number { background: #FFD93D; }
 .step-orange .step-number { background: #FF9600; }
 
 .step-icon {
@@ -6209,7 +6209,7 @@ p {
 }
 
 .feature-mint {
-  background: linear-gradient(135deg, #58CC02 0%, #7ED957 100%);
+  background: linear-gradient(135deg, #FFD93D 0%, #FFE066 100%);
 }
 
 .feature-sky {
