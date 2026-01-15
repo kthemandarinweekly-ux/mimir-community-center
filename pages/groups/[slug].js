@@ -83,6 +83,35 @@ export default function GroupDetailPage() {
   const [postingReply, setPostingReply] = useState(false);
   const [threadReplyCounts, setThreadReplyCounts] = useState({});
   const [joinError, setJoinError] = useState("");
+  const [authorProfiles, setAuthorProfiles] = useState({});
+
+  // Fetch profile for an email and cache it
+  const fetchAuthorProfile = async (email) => {
+    if (!email || authorProfiles[email]) return;
+    try {
+      const res = await fetch(`/api/users?email=${encodeURIComponent(email)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user) {
+          setAuthorProfiles((prev) => ({ ...prev, [email]: data.user }));
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch author profile:", e);
+    }
+  };
+
+  // Get display name for an author (use current profile if available)
+  const getAuthorDisplayName = (authorEmail, fallbackName) => {
+    const profile = authorProfiles[authorEmail];
+    return profile?.nickname || profile?.name || fallbackName || "Member";
+  };
+
+  // Get avatar for an author (use current profile if available)
+  const getAuthorAvatar = (authorEmail, fallbackAvatar) => {
+    const profile = authorProfiles[authorEmail];
+    return profile?.avatar || fallbackAvatar || "sunrise";
+  };
 
   // Extract language from slug (e.g., "intermediate-chinese" -> "Chinese")
   const getLanguageFromSlug = (s) => {
@@ -205,6 +234,10 @@ export default function GroupDetailPage() {
         })
       );
       setThreadReplyCounts(counts);
+
+      // Fetch author profiles for all unique emails
+      const uniqueEmails = [...new Set(threadList.map((t) => t.authorEmail).filter(Boolean))];
+      uniqueEmails.forEach((email) => fetchAuthorProfile(email));
     } catch (err) {
       setError("Unable to load threads.");
     } finally {
@@ -376,11 +409,20 @@ export default function GroupDetailPage() {
     setThreadReplies([]);
     setNewReply("");
 
+    // Fetch profile for thread author
+    if (thread.authorEmail) {
+      fetchAuthorProfile(thread.authorEmail);
+    }
+
     try {
       const response = await fetch(`/api/replies?threadId=${thread.id}`);
       if (response.ok) {
         const data = await response.json();
-        setThreadReplies(data.replies || []);
+        const replies = data.replies || [];
+        setThreadReplies(replies);
+        // Fetch profiles for reply authors
+        const uniqueEmails = [...new Set(replies.map((r) => r.authorEmail).filter(Boolean))];
+        uniqueEmails.forEach((email) => fetchAuthorProfile(email));
       }
     } catch (error) {
       console.error("Failed to fetch replies:", error);
@@ -709,7 +751,7 @@ export default function GroupDetailPage() {
                     <div className="thread-content">
                       <h3>{thread.title}</h3>
                       <p className="thread-meta">
-                        <span className="thread-author-name">{thread.authorName}</span>
+                        <span className="thread-author-name">{getAuthorDisplayName(thread.authorEmail, thread.authorName)}</span>
                         <span className="thread-meta-dot">·</span>
                         {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "Just now"}
                       </p>
@@ -879,13 +921,13 @@ export default function GroupDetailPage() {
                   <div key={thread.id} className="modal-list-item">
                     <img
                       className="thread-avatar"
-                      src={`/avatars/${thread.authorAvatar || "sunrise"}.svg`}
-                      alt={`${thread.authorName} avatar`}
+                      src={`/avatars/${getAuthorAvatar(thread.authorEmail, thread.authorAvatar)}.svg`}
+                      alt={`${getAuthorDisplayName(thread.authorEmail, thread.authorName)} avatar`}
                     />
                     <div className="modal-item-content">
                       <h3>{thread.title}</h3>
                       <p className="modal-item-meta">
-                        {thread.authorName} · {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "Just now"}
+                        {getAuthorDisplayName(thread.authorEmail, thread.authorName)} · {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "Just now"}
                       </p>
                       {thread.body && <p className="modal-item-preview">{thread.body}</p>}
                     </div>
@@ -980,11 +1022,11 @@ export default function GroupDetailPage() {
             <div className="thread-modal-header">
               <img
                 className="thread-author-avatar"
-                src={`/avatars/${selectedThread.authorAvatar || "sunrise"}.svg`}
-                alt={`${selectedThread.authorName} avatar`}
+                src={`/avatars/${getAuthorAvatar(selectedThread.authorEmail, selectedThread.authorAvatar)}.svg`}
+                alt={`${getAuthorDisplayName(selectedThread.authorEmail, selectedThread.authorName)} avatar`}
               />
               <div>
-                <p className="thread-author-name">{selectedThread.authorName}</p>
+                <p className="thread-author-name">{getAuthorDisplayName(selectedThread.authorEmail, selectedThread.authorName)}</p>
                 <p className="thread-date">
                   {selectedThread.createdAt
                     ? new Date(selectedThread.createdAt).toLocaleDateString()
@@ -1012,12 +1054,12 @@ export default function GroupDetailPage() {
                     <div key={reply.id} className="reply-item">
                       <img
                         className="reply-avatar"
-                        src={`/avatars/${reply.authorAvatar || "sunrise"}.svg`}
-                        alt={`${reply.authorName} avatar`}
+                        src={`/avatars/${getAuthorAvatar(reply.authorEmail, reply.authorAvatar)}.svg`}
+                        alt={`${getAuthorDisplayName(reply.authorEmail, reply.authorName)} avatar`}
                       />
                       <div className="reply-content">
                         <div className="reply-header">
-                          <span className="reply-author">{reply.authorName}</span>
+                          <span className="reply-author">{getAuthorDisplayName(reply.authorEmail, reply.authorName)}</span>
                           <span className="reply-date">
                             {reply.createdAt
                               ? new Date(reply.createdAt).toLocaleDateString()

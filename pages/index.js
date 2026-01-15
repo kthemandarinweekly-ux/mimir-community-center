@@ -94,6 +94,14 @@ export default function Home() {
 
         </main>
 
+        <a
+          href="https://www.themimir.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="powered-by-mimir"
+        >
+          Powered by Mimir
+        </a>
       </div>
 
       {/* Season Topic Section - Colorful Banner */}
