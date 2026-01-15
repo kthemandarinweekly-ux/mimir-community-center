@@ -92,20 +92,6 @@ export default function Home() {
             )}
           </div>
 
-          <div className="home-hero-stats">
-            <div className="hero-stat">
-              <span className="hero-stat-icon">🌍</span>
-              <span className="hero-stat-text">3 Languages</span>
-            </div>
-            <div className="hero-stat">
-              <span className="hero-stat-icon">👥</span>
-              <span className="hero-stat-text">Global Community</span>
-            </div>
-            <div className="hero-stat">
-              <span className="hero-stat-icon">🎓</span>
-              <span className="hero-stat-text">Free Classes</span>
-            </div>
-          </div>
         </main>
 
       </div>
