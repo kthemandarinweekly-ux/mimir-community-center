@@ -24,7 +24,6 @@ export default function Home() {
         <MinimalNav />
 
         <main className="home-hero-content">
-          <div className="home-hero-badge">🌟 Free to join</div>
           <h1 className="home-title">Open Debate</h1>
           <p className="home-tagline">
             Join a global community. Discuss real topics. Build real fluency.
@@ -38,7 +37,7 @@ export default function Home() {
             ) : (
               <>
                 <Link className="home-cta-primary" href="/signin">
-                  Start Learning Free →
+                  Join the community →
                 </Link>
                 <Link className="home-cta-secondary" href="/groups">
                   Explore Groups
@@ -63,11 +62,6 @@ export default function Home() {
           </div>
         </main>
 
-        <div className="home-hero-illustration">
-          <div className="floating-card card-1">🇨🇳</div>
-          <div className="floating-card card-2">🇪🇸</div>
-          <div className="floating-card card-3">🇬🇧</div>
-        </div>
       </div>
 
       {/* Season Topic Section - Colorful Banner */}
