@@ -1,11 +1,51 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import MinimalNav from "../components/MinimalNav";
+
+const TYPING_PHRASES = [
+  "Learn a language through debate",
+  "Practice speaking with confidence",
+  "Join discussions in Chinese, Spanish, or English",
+  "Build fluency by sharing your opinions",
+  "Connect with learners worldwide",
+];
 
 export default function Home() {
   const { status } = useSession();
   const isLoggedIn = status === "authenticated";
+
+  // Typewriter effect state
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentPhrase = TYPING_PHRASES[phraseIndex];
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing
+        if (displayText.length < currentPhrase.length) {
+          setDisplayText(currentPhrase.slice(0, displayText.length + 1));
+        } else {
+          // Pause at end, then start deleting
+          setTimeout(() => setIsDeleting(true), 2000);
+        }
+      } else {
+        // Deleting
+        if (displayText.length > 0) {
+          setDisplayText(displayText.slice(0, -1));
+        } else {
+          setIsDeleting(false);
+          setPhraseIndex((prev) => (prev + 1) % TYPING_PHRASES.length);
+        }
+      }
+    }, isDeleting ? 30 : 80);
+
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, phraseIndex]);
 
   return (
     <>
@@ -28,6 +68,12 @@ export default function Home() {
           <p className="home-tagline">
             Join a global community. Discuss real topics. Build real fluency.
           </p>
+
+          {/* Typewriter Card */}
+          <div className="typewriter-card">
+            <span className="typewriter-text">{displayText}</span>
+            <span className="typewriter-cursor">|</span>
+          </div>
 
           <div className="home-hero-actions">
             {isLoggedIn ? (

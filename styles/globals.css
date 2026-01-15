@@ -5890,6 +5890,50 @@ p {
   max-width: 500px;
 }
 
+/* Typewriter Card */
+.typewriter-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 20px 32px;
+  margin: 24px 0;
+  min-width: 400px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.typewriter-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.typewriter-cursor {
+  font-weight: 300;
+  color: #7C3AED;
+  animation: blink 1s infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .typewriter-card {
+    min-width: auto;
+    width: 90%;
+    padding: 16px 20px;
+  }
+
+  .typewriter-text {
+    font-size: 0.95rem;
+  }
+}
+
 .home-hero-actions {
   display: flex;
   gap: 16px;
