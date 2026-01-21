@@ -101,7 +101,8 @@ export default async function handler(req, res) {
       });
 
       if (!response.ok) {
-        res.status(response.status).json({ error: "Failed to save material" });
+        const errorData = await response.json().catch(() => ({}));
+        res.status(response.status).json({ error: "Failed to save material", details: errorData });
         return;
       }
 
