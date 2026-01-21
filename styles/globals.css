@@ -4809,6 +4809,23 @@ p {
   margin: 4px 0 0;
 }
 
+.modal-materials-list li.material-item-saveable {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.modal-materials-list li.material-item-saveable .material-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-materials-list li.material-item-saveable .save-btn {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .modal-empty-item {
   color: var(--ink-soft);
   font-style: italic;
@@ -6389,4 +6406,58 @@ p {
   .floating-card {
     display: none;
   }
+}
+
+/* Add to Calendar Dropdown */
+.calendar-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.calendar-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.calendar-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 180px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.calendar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.calendar-dropdown-item:hover {
+  background: var(--sand);
+}
+
+.calendar-dropdown-item svg {
+  flex-shrink: 0;
+  color: var(--ink-soft);
 }

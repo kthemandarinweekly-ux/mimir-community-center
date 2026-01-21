@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import MinimalNav from "../components/MinimalNav";
+import AddToCalendarDropdown from "../components/AddToCalendarDropdown";
 
 const EVENT_TYPES = ["Class", "Debate Prep", "Competition"];
 
@@ -442,6 +443,7 @@ export default function CalendarPage() {
                       ? "Reminder set"
                       : "Email reminder"}
                   </button>
+                  <AddToCalendarDropdown event={selectedEvent} />
                 </>
               ) : (
                 <Link className="event-btn primary" href="/signin">

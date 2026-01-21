@@ -25,6 +25,13 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Optional: verify cron secret for security
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret && req.query.secret !== cronSecret) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
   const baseId = process.env.AIRTABLE_BASE_ID;
   const tableName = process.env.AIRTABLE_RSVPS_TABLE_NAME || "RSVPs";
   const apiKey = process.env.AIRTABLE_API_KEY;

@@ -60,9 +60,20 @@ export default function AccountPage() {
           setEvents(data.events || []);
         }
 
-        // Fetch saved materials from localStorage for now
-        const saved = JSON.parse(localStorage.getItem("savedMaterials") || "[]");
-        setSavedMaterials(saved);
+        // Fetch saved materials from API
+        const savedResponse = await fetch(`/api/saved-materials?email=${encodeURIComponent(session.user.email)}`);
+        if (savedResponse.ok) {
+          const savedData = await savedResponse.json();
+          setSavedMaterials((savedData.savedMaterials || []).map((m) => ({
+            id: m.materialId,
+            recordId: m.id,
+            title: m.materialTitle,
+            url: m.materialUrl,
+            type: m.materialType,
+            language: m.materialLanguage,
+            savedAt: m.savedAt,
+          })));
+        }
 
         // Fetch user's threads (conversations they started)
         const threadsResponse = await fetch(`/api/threads?authorEmail=${encodeURIComponent(session.user.email)}`);
@@ -124,10 +135,25 @@ export default function AccountPage() {
       .slice(0, 5);
   }, [rsvps, events]);
 
-  const removeSavedMaterial = (id) => {
-    const updated = savedMaterials.filter((m) => m.id !== id);
-    setSavedMaterials(updated);
-    localStorage.setItem("savedMaterials", JSON.stringify(updated));
+  const removeSavedMaterial = async (materialId) => {
+    if (!session?.user?.email) return;
+
+    try {
+      const response = await fetch("/api/saved-materials", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: session.user.email,
+          materialId: materialId,
+        }),
+      });
+
+      if (response.ok) {
+        setSavedMaterials((prev) => prev.filter((m) => m.id !== materialId));
+      }
+    } catch (error) {
+      console.error("Failed to remove saved material:", error);
+    }
   };
 
   // Calculate user stats for badge system

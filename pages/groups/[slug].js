@@ -85,6 +85,8 @@ export default function GroupDetailPage() {
   const [threadReplyCounts, setThreadReplyCounts] = useState({});
   const [joinError, setJoinError] = useState("");
   const [authorProfiles, setAuthorProfiles] = useState({});
+  const [savedMaterialIds, setSavedMaterialIds] = useState(new Set());
+  const [savingMaterialId, setSavingMaterialId] = useState(null);
 
   // Fetch profile for an email and cache it
   const fetchAuthorProfile = async (email) => {
@@ -187,6 +189,25 @@ export default function GroupDetailPage() {
 
     fetchMaterials();
   }, [slug]);
+
+  // Fetch saved materials for logged-in user
+  useEffect(() => {
+    if (!session?.user?.email) return;
+
+    const fetchSavedMaterials = async () => {
+      try {
+        const response = await fetch(`/api/saved-materials?email=${encodeURIComponent(session.user.email)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSavedMaterialIds(new Set((data.savedMaterials || []).map((m) => m.materialId)));
+        }
+      } catch (error) {
+        console.error("Failed to fetch saved materials:", error);
+      }
+    };
+
+    fetchSavedMaterials();
+  }, [session?.user?.email]);
 
   // Fetch group members
   useEffect(() => {
@@ -426,6 +447,44 @@ export default function GroupDetailPage() {
       console.error("Failed to set reminder:", error);
     } finally {
       setRsvpLoading(false);
+    }
+  };
+
+  const handleSaveMaterial = async (material) => {
+    if (!session?.user?.email) return;
+
+    setSavingMaterialId(material.id);
+    const isSaved = savedMaterialIds.has(material.id);
+
+    try {
+      const response = await fetch("/api/saved-materials", {
+        method: isSaved ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: session.user.email,
+          materialId: material.id,
+          materialTitle: material.title,
+          materialUrl: material.fileUrl,
+          materialType: material.type === "watch" ? "Watch" : "Read",
+          materialLanguage: groupLanguage,
+        }),
+      });
+
+      if (response.ok) {
+        setSavedMaterialIds((prev) => {
+          const next = new Set(prev);
+          if (isSaved) {
+            next.delete(material.id);
+          } else {
+            next.add(material.id);
+          }
+          return next;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to save material:", error);
+    } finally {
+      setSavingMaterialId(null);
     }
   };
 
@@ -1013,15 +1072,26 @@ export default function GroupDetailPage() {
                     <li className="modal-empty-item">No watch materials yet</li>
                   ) : (
                     materials.filter((m) => m.type === "watch").map((material) => (
-                      <li key={material.id}>
-                        {material.fileUrl ? (
-                          <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
-                            {material.title}
-                          </a>
-                        ) : (
-                          <span>{material.title}</span>
+                      <li key={material.id} className="material-item-saveable">
+                        <div className="material-content">
+                          {material.fileUrl ? (
+                            <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
+                              {material.title}
+                            </a>
+                          ) : (
+                            <span>{material.title}</span>
+                          )}
+                          {material.description && <p className="material-desc">{material.description}</p>}
+                        </div>
+                        {isLoggedIn && (
+                          <button
+                            className={`save-btn ${savedMaterialIds.has(material.id) ? "saved" : ""}`}
+                            onClick={() => handleSaveMaterial(material)}
+                            disabled={savingMaterialId === material.id}
+                          >
+                            {savingMaterialId === material.id ? "..." : savedMaterialIds.has(material.id) ? "Saved" : "Save"}
+                          </button>
                         )}
-                        {material.description && <p className="material-desc">{material.description}</p>}
                       </li>
                     ))
                   )}
@@ -1034,15 +1104,26 @@ export default function GroupDetailPage() {
                     <li className="modal-empty-item">No reading materials available yet</li>
                   ) : (
                     materials.filter((m) => m.type !== "watch").map((material) => (
-                      <li key={material.id}>
-                        {material.fileUrl ? (
-                          <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
-                            {material.title}
-                          </a>
-                        ) : (
-                          <span>{material.title}</span>
+                      <li key={material.id} className="material-item-saveable">
+                        <div className="material-content">
+                          {material.fileUrl ? (
+                            <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
+                              {material.title}
+                            </a>
+                          ) : (
+                            <span>{material.title}</span>
+                          )}
+                          {material.description && <p className="material-desc">{material.description}</p>}
+                        </div>
+                        {isLoggedIn && (
+                          <button
+                            className={`save-btn ${savedMaterialIds.has(material.id) ? "saved" : ""}`}
+                            onClick={() => handleSaveMaterial(material)}
+                            disabled={savingMaterialId === material.id}
+                          >
+                            {savingMaterialId === material.id ? "..." : savedMaterialIds.has(material.id) ? "Saved" : "Save"}
+                          </button>
                         )}
-                        {material.description && <p className="material-desc">{material.description}</p>}
                       </li>
                     ))
                   )}

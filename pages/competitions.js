@@ -10,24 +10,23 @@ const languageConfigs = [
   {
     key: "english",
     label: "English",
-    groupSlug: "season-2026-1-english",
+    keywords: ["english"],
   },
   {
     key: "spanish",
     label: "Spanish",
-    groupSlug: "season-2026-1-spanish",
+    keywords: ["spanish"],
   },
   {
     key: "chinese",
     label: "Chinese",
-    groupSlug: "season-2026-1-chinese",
+    keywords: ["chinese"],
   },
 ];
 
-async function fetchMaterials(groupSlug, type) {
-  const response = await fetch(
-    `/api/materials?groupSlug=${encodeURIComponent(groupSlug)}&type=${encodeURIComponent(type)}`
-  );
+// Fetch all materials and group by language
+async function fetchAllMaterials() {
+  const response = await fetch("/api/materials");
   if (!response.ok) {
     return [];
   }
@@ -36,65 +35,104 @@ async function fetchMaterials(groupSlug, type) {
 }
 
 export default function CompetitionsPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
 
   const [materials, setMaterials] = useState({
-    english: { video: [], reading: [] },
-    spanish: { video: [], reading: [] },
-    chinese: { video: [], reading: [] },
+    english: { watch: [], read: [] },
+    spanish: { watch: [], read: [] },
+    chinese: { watch: [], read: [] },
   });
   const [savedIds, setSavedIds] = useState(new Set());
+  const [savingId, setSavingId] = useState(null);
 
   useEffect(() => {
     const loadMaterials = async () => {
-      const updates = {};
-      await Promise.all(
-        languageConfigs.map(async (lang) => {
-          const [video, reading] = await Promise.all([
-            fetchMaterials(lang.groupSlug, "video"),
-            fetchMaterials(lang.groupSlug, "reading"),
-          ]);
-          updates[lang.key] = { video, reading };
-        })
-      );
-      setMaterials((prev) => ({ ...prev, ...updates }));
+      const allMaterials = await fetchAllMaterials();
+
+      // Group materials by language based on groupSlug keywords
+      const grouped = {
+        english: { watch: [], read: [] },
+        spanish: { watch: [], read: [] },
+        chinese: { watch: [], read: [] },
+      };
+
+      allMaterials.forEach((material) => {
+        const slugs = Array.isArray(material.groupSlug) ? material.groupSlug : [material.groupSlug];
+        const slugString = slugs.join(" ").toLowerCase();
+
+        languageConfigs.forEach((lang) => {
+          const matchesLang = lang.keywords.some((kw) => slugString.includes(kw));
+          if (matchesLang) {
+            const type = material.type === "watch" ? "watch" : "read";
+            // Avoid duplicates
+            if (!grouped[lang.key][type].some((m) => m.id === material.id)) {
+              grouped[lang.key][type].push(material);
+            }
+          }
+        });
+      });
+
+      setMaterials(grouped);
     };
 
     loadMaterials();
-
-    // Load saved materials from localStorage
-    const saved = JSON.parse(localStorage.getItem("savedMaterials") || "[]");
-    setSavedIds(new Set(saved.map((m) => m.id)));
   }, []);
 
-  const handleSave = (material, type, language) => {
-    const saved = JSON.parse(localStorage.getItem("savedMaterials") || "[]");
-    const exists = saved.some((m) => m.id === material.id);
+  // Load saved materials for logged-in users
+  useEffect(() => {
+    if (!session?.user?.email) return;
 
-    if (exists) {
-      // Remove from saved
-      const updated = saved.filter((m) => m.id !== material.id);
-      localStorage.setItem("savedMaterials", JSON.stringify(updated));
-      setSavedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(material.id);
-        return next;
+    const loadSavedMaterials = async () => {
+      try {
+        const response = await fetch(`/api/saved-materials?email=${encodeURIComponent(session.user.email)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSavedIds(new Set((data.savedMaterials || []).map((m) => m.materialId)));
+        }
+      } catch (error) {
+        console.error("Failed to load saved materials:", error);
+      }
+    };
+
+    loadSavedMaterials();
+  }, [session?.user?.email]);
+
+  const handleSave = async (material, type, language) => {
+    if (!session?.user?.email) return;
+
+    setSavingId(material.id);
+    const isSaved = savedIds.has(material.id);
+
+    try {
+      const response = await fetch("/api/saved-materials", {
+        method: isSaved ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: session.user.email,
+          materialId: material.id,
+          materialTitle: material.title,
+          materialUrl: material.fileUrl,
+          materialType: type,
+          materialLanguage: language,
+        }),
       });
-    } else {
-      // Add to saved
-      const newMaterial = {
-        id: material.id,
-        title: material.title,
-        description: material.description,
-        url: material.fileUrl,
-        type: type,
-        language: language,
-        savedAt: new Date().toISOString(),
-      };
-      saved.push(newMaterial);
-      localStorage.setItem("savedMaterials", JSON.stringify(saved));
-      setSavedIds((prev) => new Set(prev).add(material.id));
+
+      if (response.ok) {
+        setSavedIds((prev) => {
+          const next = new Set(prev);
+          if (isSaved) {
+            next.delete(material.id);
+          } else {
+            next.add(material.id);
+          }
+          return next;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to save material:", error);
+    } finally {
+      setSavingId(null);
     }
   };
 
@@ -128,16 +166,16 @@ export default function CompetitionsPage() {
           </section>
 
           {languageConfigs.map((lang) => {
-            const langMaterials = materials[lang.key] || { video: [], reading: [] };
+            const langMaterials = materials[lang.key] || { watch: [], read: [] };
             return (
               <section key={lang.key} className="minimal-section">
                 <h2 className="minimal-section-title">{lang.label}</h2>
                 <div className="materials-row">
                   <article className="materials-card">
                     <h3>Watch</h3>
-                    {langMaterials.video.length > 0 ? (
+                    {langMaterials.watch.length > 0 ? (
                       <ul className="materials-list-saveable">
-                        {langMaterials.video.map((item) => (
+                        {langMaterials.watch.map((item) => (
                           <li key={item.id}>
                             <div className="material-content">
                               <a href={item.fileUrl} target="_blank" rel="noreferrer">
@@ -145,24 +183,27 @@ export default function CompetitionsPage() {
                               </a>
                               {item.description && <span>{item.description}</span>}
                             </div>
-                            <button
-                              className={`save-btn ${savedIds.has(item.id) ? "saved" : ""}`}
-                              onClick={() => handleSave(item, "Video", lang.label)}
-                            >
-                              {savedIds.has(item.id) ? "Saved" : "Save"}
-                            </button>
+                            {isLoggedIn && (
+                              <button
+                                className={`save-btn ${savedIds.has(item.id) ? "saved" : ""}`}
+                                onClick={() => handleSave(item, "Watch", lang.label)}
+                                disabled={savingId === item.id}
+                              >
+                                {savingId === item.id ? "..." : savedIds.has(item.id) ? "Saved" : "Save"}
+                              </button>
+                            )}
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="materials-empty">No video materials yet.</p>
+                      <p className="materials-empty">No watch materials yet.</p>
                     )}
                   </article>
                   <article className="materials-card">
                     <h3>Read</h3>
-                    {langMaterials.reading.length > 0 ? (
+                    {langMaterials.read.length > 0 ? (
                       <ul className="materials-list-saveable">
-                        {langMaterials.reading.map((item) => (
+                        {langMaterials.read.map((item) => (
                           <li key={item.id}>
                             <div className="material-content">
                               <a href={item.fileUrl} target="_blank" rel="noreferrer">
@@ -170,12 +211,15 @@ export default function CompetitionsPage() {
                               </a>
                               {item.description && <span>{item.description}</span>}
                             </div>
-                            <button
-                              className={`save-btn ${savedIds.has(item.id) ? "saved" : ""}`}
-                              onClick={() => handleSave(item, "Reading", lang.label)}
-                            >
-                              {savedIds.has(item.id) ? "Saved" : "Save"}
-                            </button>
+                            {isLoggedIn && (
+                              <button
+                                className={`save-btn ${savedIds.has(item.id) ? "saved" : ""}`}
+                                onClick={() => handleSave(item, "Read", lang.label)}
+                                disabled={savingId === item.id}
+                              >
+                                {savingId === item.id ? "..." : savedIds.has(item.id) ? "Saved" : "Save"}
+                              </button>
+                            )}
                           </li>
                         ))}
                       </ul>
