@@ -17,8 +17,9 @@ export default async function handler(req, res) {
     try {
       let filterParts = [];
       if (groupSlug) {
-        // Use SEARCH for multiple select fields (case-insensitive, handles comma-space format)
-        filterParts.push(`SEARCH('${groupSlug}', ARRAYJOIN({GroupSlug})) > 0`);
+        // For multiple select, fetch all and let client filter, OR use direct field check
+        // Try: check if the field contains the value (Airtable returns comma-separated)
+        filterParts.push(`OR(FIND('${groupSlug}', ARRAYJOIN({GroupSlug}, ', ')) > 0, {GroupSlug} = '${groupSlug}')`);
       }
       if (type) {
         filterParts.push(`{Type}='${type}'`);
