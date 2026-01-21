@@ -93,7 +93,7 @@ export default async function handler(req, res) {
                 MaterialUrl: materialUrl || "",
                 MaterialType: materialType || "",
                 MaterialLanguage: materialLanguage || "",
-                SavedAt: new Date().toISOString(),
+                SavedAt: new Date().toISOString().split("T")[0],
               },
             },
           ],
