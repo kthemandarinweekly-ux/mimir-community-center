@@ -859,6 +859,46 @@ p {
   gap: 8px;
 }
 
+.detail-list li.material-item-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-list li.material-item-inline .material-link {
+  flex: 1;
+  min-width: 0;
+}
+
+.save-btn-inline {
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  color: #6a6070;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.save-btn-inline:hover {
+  border-color: #7a5cff;
+  color: #7a5cff;
+}
+
+.save-btn-inline.saved {
+  background: #7a5cff;
+  border-color: #7a5cff;
+  color: #ffffff;
+}
+
+.save-btn-inline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .detail-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

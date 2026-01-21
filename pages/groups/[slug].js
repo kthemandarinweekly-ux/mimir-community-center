@@ -731,13 +731,24 @@ export default function GroupDetailPage() {
                 <h3>Watch</h3>
                 <ul className="detail-list">
                   {materials.filter((item) => item.type === "watch").slice(0, 4).map((material) => (
-                    <li key={material.id}>
-                      {material.fileUrl ? (
-                        <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
-                          {material.title}
-                        </a>
-                      ) : (
-                        material.title
+                    <li key={material.id} className="material-item-inline">
+                      <div className="material-link">
+                        {material.fileUrl ? (
+                          <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
+                            {material.title}
+                          </a>
+                        ) : (
+                          material.title
+                        )}
+                      </div>
+                      {isLoggedIn && (
+                        <button
+                          className={`save-btn-inline ${savedMaterialIds.has(material.id) ? "saved" : ""}`}
+                          onClick={() => handleSaveMaterial(material)}
+                          disabled={savingMaterialId === material.id}
+                        >
+                          {savingMaterialId === material.id ? "..." : savedMaterialIds.has(material.id) ? "Saved" : "Save"}
+                        </button>
                       )}
                     </li>
                   ))}
@@ -756,13 +767,24 @@ export default function GroupDetailPage() {
                     .filter((item) => item.type !== "watch")
                     .slice(0, 4)
                     .map((material) => (
-                      <li key={material.id}>
-                        {material.fileUrl ? (
-                          <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
-                            {material.title}
-                          </a>
-                        ) : (
-                          material.title
+                      <li key={material.id} className="material-item-inline">
+                        <div className="material-link">
+                          {material.fileUrl ? (
+                            <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
+                              {material.title}
+                            </a>
+                          ) : (
+                            material.title
+                          )}
+                        </div>
+                        {isLoggedIn && (
+                          <button
+                            className={`save-btn-inline ${savedMaterialIds.has(material.id) ? "saved" : ""}`}
+                            onClick={() => handleSaveMaterial(material)}
+                            disabled={savingMaterialId === material.id}
+                          >
+                            {savingMaterialId === material.id ? "..." : savedMaterialIds.has(material.id) ? "Saved" : "Save"}
+                          </button>
                         )}
                       </li>
                     ))}
