@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       let filterParts = [];
       if (groupSlug) {
         // Use FIND for multiple select fields - checks if groupSlug is in the array
-        filterParts.push(`FIND('${groupSlug}', ARRAYJOIN({GroupSlug}, ',')) > 0`);
+        filterParts.push(`FIND('${groupSlug}', {GroupSlug} & '') > 0`);
       }
       if (type) {
         filterParts.push(`{Type}='${type}'`);
