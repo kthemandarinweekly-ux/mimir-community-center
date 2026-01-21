@@ -17,7 +17,8 @@ export default async function handler(req, res) {
     try {
       let filterParts = [];
       if (groupSlug) {
-        filterParts.push(`{GroupSlug}='${groupSlug}'`);
+        // Use FIND for multiple select fields - checks if groupSlug is in the array
+        filterParts.push(`FIND('${groupSlug}', ARRAYJOIN({GroupSlug}, ',')) > 0`);
       }
       if (type) {
         filterParts.push(`{Type}='${type}'`);
@@ -50,7 +51,7 @@ export default async function handler(req, res) {
         description: record.fields.Description || "",
         type: record.fields.Type || "document",
         fileUrl: record.fields.FileUrl || "",
-        groupSlug: record.fields.GroupSlug || "",
+        groupSlug: record.fields.GroupSlug || [],
         uploadedAt: record.fields.UploadedAt || null,
       }));
 

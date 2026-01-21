@@ -7,6 +7,7 @@ import NavBar from "../../components/NavBar";
 import { useProfile } from "../../components/useProfile";
 import { useMemberships } from "../../components/useMemberships";
 import { getBadgeLevel } from "../../components/useBadge";
+import AddToCalendarDropdown from "../../components/AddToCalendarDropdown";
 
 // Fallback group data
 const fallbackGroups = {
@@ -338,6 +339,7 @@ export default function GroupDetailPage() {
 
   const hasRsvp = (eventId) => rsvps.some((rsvp) => rsvp.eventId === eventId);
   const getRsvpStatus = (eventId) => rsvps.find((r) => r.eventId === eventId)?.status || null;
+  const getRsvpRecord = (eventId) => rsvps.find((r) => r.eventId === eventId) || null;
 
   const handleSaveEvent = async (event) => {
     if (!session?.user?.email) {
@@ -387,6 +389,41 @@ export default function GroupDetailPage() {
       }
     } catch (error) {
       console.error("Failed to save event:", error);
+    } finally {
+      setRsvpLoading(false);
+    }
+  };
+
+  const handleReminder = async (event) => {
+    if (!session?.user?.email) return;
+
+    setRsvpLoading(true);
+    try {
+      await fetch("/api/rsvps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: event.id,
+          eventTitle: event.title,
+          eventStart: event.start,
+          eventEnd: event.end,
+          eventDescription: event.description,
+          eventLocation: event.location,
+          eventLink: event.link,
+          userEmail: session.user.email,
+          userName: session.user.name || "",
+          status: getRsvpStatus(event.id) || "saved",
+          reminderRequested: true,
+        }),
+      });
+
+      const response = await fetch(`/api/rsvps?email=${encodeURIComponent(session.user.email)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRsvps(data.rsvps || []);
+      }
+    } catch (error) {
+      console.error("Failed to set reminder:", error);
     } finally {
       setRsvpLoading(false);
     }
@@ -634,7 +671,7 @@ export default function GroupDetailPage() {
               <div className="materials-column">
                 <h3>Watch</h3>
                 <ul className="detail-list">
-                  {materials.filter((item) => item.type === "video").slice(0, 4).map((material) => (
+                  {materials.filter((item) => item.type === "watch").slice(0, 4).map((material) => (
                     <li key={material.id}>
                       {material.fileUrl ? (
                         <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
@@ -645,7 +682,7 @@ export default function GroupDetailPage() {
                       )}
                     </li>
                   ))}
-                  {materials.filter((item) => item.type === "video").length === 0 && (
+                  {materials.filter((item) => item.type === "watch").length === 0 && (
                     <>
                       <li>Weekly highlight reel</li>
                       <li>Season topic overview</li>
@@ -657,7 +694,7 @@ export default function GroupDetailPage() {
                 <h3>Read</h3>
                 <ul className="detail-list">
                   {materials
-                    .filter((item) => item.type !== "video")
+                    .filter((item) => item.type !== "watch")
                     .slice(0, 4)
                     .map((material) => (
                       <li key={material.id}>
@@ -670,7 +707,7 @@ export default function GroupDetailPage() {
                         )}
                       </li>
                     ))}
-                  {materials.filter((item) => item.type !== "video").length === 0 && (
+                  {materials.filter((item) => item.type !== "watch").length === 0 && (
                     <>
                       <li>Debate motion outline</li>
                       <li>Vocabulary mini deck</li>
@@ -879,14 +916,27 @@ export default function GroupDetailPage() {
             )}
             <div className="event-actions">
               {isLoggedIn ? (
-                <button
-                  className="event-btn primary"
-                  type="button"
-                  onClick={() => handleSaveEvent(selectedEvent)}
-                  disabled={rsvpLoading}
-                >
-                  {hasRsvp(selectedEvent.id) ? "Saved ✓" : "Save event"}
-                </button>
+                <>
+                  <button
+                    className="event-btn primary"
+                    type="button"
+                    onClick={() => handleSaveEvent(selectedEvent)}
+                    disabled={rsvpLoading}
+                  >
+                    {hasRsvp(selectedEvent.id) ? "Saved ✓" : "Save event"}
+                  </button>
+                  <button
+                    className="event-btn"
+                    type="button"
+                    onClick={() => handleReminder(selectedEvent)}
+                    disabled={rsvpLoading || getRsvpRecord(selectedEvent.id)?.reminderRequested}
+                  >
+                    {getRsvpRecord(selectedEvent.id)?.reminderRequested
+                      ? "Reminder set"
+                      : "Email reminder"}
+                  </button>
+                  <AddToCalendarDropdown event={selectedEvent} />
+                </>
               ) : (
                 <Link className="event-btn primary" href="/signin">
                   Sign in to save
@@ -959,10 +1009,10 @@ export default function GroupDetailPage() {
               <div className="modal-materials-column">
                 <h3>Watch</h3>
                 <ul className="modal-materials-list">
-                  {materials.filter((m) => m.type === "video").length === 0 ? (
-                    <li className="modal-empty-item">No videos available yet</li>
+                  {materials.filter((m) => m.type === "watch").length === 0 ? (
+                    <li className="modal-empty-item">No watch materials yet</li>
                   ) : (
-                    materials.filter((m) => m.type === "video").map((material) => (
+                    materials.filter((m) => m.type === "watch").map((material) => (
                       <li key={material.id}>
                         {material.fileUrl ? (
                           <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
@@ -980,10 +1030,10 @@ export default function GroupDetailPage() {
               <div className="modal-materials-column">
                 <h3>Read</h3>
                 <ul className="modal-materials-list">
-                  {materials.filter((m) => m.type !== "video").length === 0 ? (
+                  {materials.filter((m) => m.type !== "watch").length === 0 ? (
                     <li className="modal-empty-item">No reading materials available yet</li>
                   ) : (
-                    materials.filter((m) => m.type !== "video").map((material) => (
+                    materials.filter((m) => m.type !== "watch").map((material) => (
                       <li key={material.id}>
                         {material.fileUrl ? (
                           <a href={material.fileUrl} target="_blank" rel="noopener noreferrer">
