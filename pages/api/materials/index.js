@@ -15,20 +15,11 @@ export default async function handler(req, res) {
     const { groupSlug, type } = req.query;
 
     try {
-      let filterParts = [];
-      if (groupSlug) {
-        // For multiple select, fetch all and let client filter, OR use direct field check
-        // Try: check if the field contains the value (Airtable returns comma-separated)
-        filterParts.push(`OR(FIND('${groupSlug}', ARRAYJOIN({GroupSlug}, ', ')) > 0, {GroupSlug} = '${groupSlug}')`);
-      }
-      if (type) {
-        filterParts.push(`{Type}='${type}'`);
-      }
-
+      // Only filter by type on Airtable side (single select works fine)
+      // For groupSlug (multi-select), we filter in JavaScript after fetching
       let filter = "";
-      if (filterParts.length > 0) {
-        const formula = filterParts.length > 1 ? `AND(${filterParts.join(",")})` : filterParts[0];
-        filter = `&filterByFormula=${encodeURIComponent(formula)}`;
+      if (type) {
+        filter = `&filterByFormula=${encodeURIComponent(`{Type}='${type}'`)}`;
       }
 
       const response = await fetch(
@@ -46,7 +37,7 @@ export default async function handler(req, res) {
       }
 
       const data = await response.json();
-      const materials = (data.records || []).map((record) => ({
+      let materials = (data.records || []).map((record) => ({
         id: record.id,
         title: record.fields.Title || "Untitled",
         description: record.fields.Description || "",
@@ -55,6 +46,15 @@ export default async function handler(req, res) {
         groupSlug: record.fields.GroupSlug || [],
         uploadedAt: record.fields.UploadedAt || null,
       }));
+
+      // Filter by groupSlug in JavaScript (handles multi-select arrays properly)
+      if (groupSlug) {
+        materials = materials.filter((m) =>
+          Array.isArray(m.groupSlug)
+            ? m.groupSlug.includes(groupSlug)
+            : m.groupSlug === groupSlug
+        );
+      }
 
       res.status(200).json({ materials });
     } catch (error) {
