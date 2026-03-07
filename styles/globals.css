@@ -5017,9 +5017,21 @@ p {
   margin-bottom: 24px;
 }
 
+.reply-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .reply-item {
   display: flex;
   gap: 12px;
+}
+
+.nested-reply-item {
+  display: flex;
+  gap: 10px;
+  margin-left: 46px;
 }
 
 .reply-avatar {
@@ -5030,11 +5042,21 @@ p {
   border: 1px solid var(--border);
 }
 
+.reply-avatar.nested {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+
 .reply-content {
   flex: 1;
   background: var(--sand);
   border-radius: 12px;
   padding: 12px 16px;
+}
+
+.reply-content.nested {
+  background: #f3f3f7;
 }
 
 .reply-header {
@@ -5062,6 +5084,77 @@ p {
   margin: 0;
 }
 
+.reply-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.reply-action-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.reply-action-btn:hover:not(:disabled) {
+  border-color: #d0d0df;
+  color: var(--ink);
+}
+
+.reply-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.nested-reply-form {
+  margin-left: 46px;
+  padding: 0 0 2px 0;
+}
+
+.reply-input.nested {
+  min-height: 64px;
+}
+
+.mention-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: -2px;
+}
+
+.mention-suggestion-item {
+  border: 1px solid #d9d9e6;
+  background: #ffffff;
+  color: #4f4f66;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.mention-suggestion-item:hover {
+  border-color: #bfc0d8;
+  background: #f8f8fc;
+}
+
+.nested-reply-form-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.reply-submit-btn.nested {
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
 /* Reply Form */
 .reply-form {
   display: flex;
@@ -5075,6 +5168,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: relative;
 }
 
 .reply-input {
@@ -5142,6 +5236,11 @@ p {
 
   .reply-avatar {
     display: none;
+  }
+
+  .nested-reply-item,
+  .nested-reply-form {
+    margin-left: 0;
   }
 }
 

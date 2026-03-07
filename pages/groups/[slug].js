@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import NavBar from "../../components/NavBar";
 import { useProfile } from "../../components/useProfile";
@@ -80,13 +80,21 @@ export default function GroupDetailPage() {
   const [selectedThread, setSelectedThread] = useState(null);
   const [threadReplies, setThreadReplies] = useState([]);
   const [newReply, setNewReply] = useState("");
+  const [nestedReplyDrafts, setNestedReplyDrafts] = useState({});
+  const [activeReplyTargetId, setActiveReplyTargetId] = useState(null);
   const [loadingReplies, setLoadingReplies] = useState(false);
   const [postingReply, setPostingReply] = useState(false);
+  const [likingReplyIds, setLikingReplyIds] = useState({});
+  const [activeMentionTarget, setActiveMentionTarget] = useState(null);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [mentionRange, setMentionRange] = useState({ start: -1, end: -1 });
   const [threadReplyCounts, setThreadReplyCounts] = useState({});
   const [joinError, setJoinError] = useState("");
   const [authorProfiles, setAuthorProfiles] = useState({});
   const [savedMaterialIds, setSavedMaterialIds] = useState(new Set());
   const [savingMaterialId, setSavingMaterialId] = useState(null);
+  const mainReplyInputRef = useRef(null);
+  const nestedReplyInputRefs = useRef({});
 
   // Fetch profile for an email and cache it
   const fetchAuthorProfile = async (email) => {
@@ -498,12 +506,58 @@ export default function GroupDetailPage() {
     return new Date(value).toLocaleDateString();
   };
 
+  const clearMentionState = () => {
+    setActiveMentionTarget(null);
+    setMentionQuery("");
+    setMentionRange({ start: -1, end: -1 });
+  };
+
+  const detectMentionInText = (text, cursorPosition, targetId) => {
+    const cursor = typeof cursorPosition === "number" ? cursorPosition : text.length;
+    const prefix = text.slice(0, cursor);
+    const atIndex = prefix.lastIndexOf("@");
+
+    if (atIndex < 0) {
+      clearMentionState();
+      return;
+    }
+
+    if (atIndex > 0 && /\S/.test(prefix[atIndex - 1])) {
+      clearMentionState();
+      return;
+    }
+
+    const mentionSlice = prefix.slice(atIndex + 1);
+    if (/\s/.test(mentionSlice)) {
+      clearMentionState();
+      return;
+    }
+
+    setActiveMentionTarget(targetId);
+    setMentionQuery(mentionSlice);
+    setMentionRange({ start: atIndex, end: cursor });
+  };
+
+  const refreshThreadReplies = async (threadId) => {
+    const response = await fetch(`/api/replies?threadId=${threadId}`);
+    if (!response.ok) return;
+    const data = await response.json();
+    const replies = data.replies || [];
+    setThreadReplies(replies);
+    const uniqueEmails = [...new Set(replies.map((r) => r.authorEmail).filter(Boolean))];
+    uniqueEmails.forEach((email) => fetchAuthorProfile(email));
+  };
+
   // Open thread and fetch replies
   const handleOpenThread = async (thread) => {
     setSelectedThread(thread);
     setLoadingReplies(true);
     setThreadReplies([]);
     setNewReply("");
+    setNestedReplyDrafts({});
+    setActiveReplyTargetId(null);
+    setLikingReplyIds({});
+    clearMentionState();
 
     // Fetch profile for thread author
     if (thread.authorEmail) {
@@ -511,15 +565,7 @@ export default function GroupDetailPage() {
     }
 
     try {
-      const response = await fetch(`/api/replies?threadId=${thread.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        const replies = data.replies || [];
-        setThreadReplies(replies);
-        // Fetch profiles for reply authors
-        const uniqueEmails = [...new Set(replies.map((r) => r.authorEmail).filter(Boolean))];
-        uniqueEmails.forEach((email) => fetchAuthorProfile(email));
-      }
+      await refreshThreadReplies(thread.id);
     } catch (error) {
       console.error("Failed to fetch replies:", error);
     } finally {
@@ -527,9 +573,12 @@ export default function GroupDetailPage() {
     }
   };
 
-  // Post a reply to the selected thread
-  const handlePostReply = async () => {
-    if (!newReply.trim() || !selectedThread) return;
+  // Post a reply to the selected thread or a specific reply
+  const handlePostReply = async ({ parentReplyId = "", body = "" } = {}) => {
+    const draft = (body || "").trim();
+    const topLevelDraft = newReply.trim();
+    const replyBody = draft || topLevelDraft;
+    if (!replyBody || !selectedThread) return;
     if (!session?.user?.email) {
       alert("Please sign in to reply");
       return;
@@ -547,26 +596,72 @@ export default function GroupDetailPage() {
           authorName: currentName,
           authorEmail: session.user.email,
           authorAvatar: currentAvatar,
-          body: newReply.trim(),
+          parentReplyId,
+          body: replyBody,
         }),
       });
 
       if (response.ok) {
-        setNewReply("");
-        // Refresh replies
-        const repliesRes = await fetch(`/api/replies?threadId=${selectedThread.id}`);
-        if (repliesRes.ok) {
-          const data = await repliesRes.json();
-          setThreadReplies(data.replies || []);
+        if (parentReplyId) {
+          setNestedReplyDrafts((prev) => ({ ...prev, [parentReplyId]: "" }));
+          setActiveReplyTargetId(null);
+        } else {
+          setNewReply("");
         }
+        clearMentionState();
+        await refreshThreadReplies(selectedThread.id);
       } else {
-        alert("Failed to post reply. Please try again.");
+        const errorData = await response.json().catch(() => ({}));
+        alert(errorData.error || "Failed to post reply. Please try again.");
       }
     } catch (error) {
       console.error("Failed to post reply:", error);
       alert("Failed to post reply. Please try again.");
     } finally {
       setPostingReply(false);
+    }
+  };
+
+  const handleTopLevelReplyChange = (event) => {
+    const value = event.target.value;
+    setNewReply(value);
+    detectMentionInText(value, event.target.selectionStart, "main");
+  };
+
+  const handleNestedReplyChange = (replyId, event) => {
+    const value = event.target.value;
+    setNestedReplyDrafts((prev) => ({ ...prev, [replyId]: value }));
+    detectMentionInText(value, event.target.selectionStart, replyId);
+  };
+
+  const handleLikeReply = async (replyId) => {
+    if (!replyId) return;
+    setLikingReplyIds((prev) => ({ ...prev, [replyId]: true }));
+    const currentReply = threadReplies.find((reply) => reply.id === replyId);
+    const nextLikeCount = (currentReply?.likeCount || 0) + 1;
+
+    try {
+      const response = await fetch("/api/replies", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ replyId, likeCount: nextLikeCount }),
+      });
+
+      if (response.ok) {
+        setThreadReplies((prev) =>
+          prev.map((reply) =>
+            reply.id === replyId ? { ...reply, likeCount: nextLikeCount } : reply
+          )
+        );
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(errorData.error || "Failed to like reply. Please try again.");
+      }
+    } catch (error) {
+      console.error("Failed to like reply:", error);
+      alert("Failed to like reply. Please try again.");
+    } finally {
+      setLikingReplyIds((prev) => ({ ...prev, [replyId]: false }));
     }
   };
 
@@ -614,6 +709,67 @@ export default function GroupDetailPage() {
       setJoinError("An error occurred. Please try again.");
     }
     setJoinLoading(false);
+  };
+
+  const topLevelReplies = threadReplies.filter((reply) => !reply.parentReplyId);
+  const getNestedReplies = (parentReplyId) =>
+    threadReplies.filter((reply) => reply.parentReplyId === parentReplyId);
+
+  const mentionCandidates = useMemo(() => {
+    const map = new Map();
+    const addCandidate = (email, fallbackName) => {
+      const label = getAuthorDisplayName(email, fallbackName);
+      if (!label) return;
+      const key = label.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, { label, email: email || "" });
+      }
+    };
+
+    if (selectedThread) {
+      addCandidate(selectedThread.authorEmail, selectedThread.authorName);
+    }
+    threadReplies.forEach((reply) => addCandidate(reply.authorEmail, reply.authorName));
+    if (session?.user?.email) {
+      addCandidate(session.user.email, currentName);
+    }
+
+    return Array.from(map.values());
+  }, [selectedThread, threadReplies, authorProfiles, session?.user?.email, currentName]);
+
+  const mentionSuggestions = useMemo(() => {
+    if (!activeMentionTarget) return [];
+    const query = mentionQuery.trim().toLowerCase();
+    return mentionCandidates
+      .filter((candidate) => !query || candidate.label.toLowerCase().includes(query))
+      .slice(0, 6);
+  }, [activeMentionTarget, mentionQuery, mentionCandidates]);
+
+  const insertMention = (candidateLabel) => {
+    if (!activeMentionTarget || mentionRange.start < 0 || mentionRange.end < mentionRange.start) return;
+
+    const isMain = activeMentionTarget === "main";
+    const currentValue = isMain ? newReply : nestedReplyDrafts[activeMentionTarget] || "";
+    const prefix = currentValue.slice(0, mentionRange.start);
+    const suffix = currentValue.slice(mentionRange.end);
+    const inserted = `@${candidateLabel} `;
+    const nextValue = `${prefix}${inserted}${suffix}`;
+    const nextCaret = `${prefix}${inserted}`.length;
+
+    if (isMain) {
+      setNewReply(nextValue);
+    } else {
+      setNestedReplyDrafts((prev) => ({ ...prev, [activeMentionTarget]: nextValue }));
+    }
+    clearMentionState();
+
+    setTimeout(() => {
+      const input = isMain ? mainReplyInputRef.current : nestedReplyInputRefs.current[activeMentionTarget];
+      if (input) {
+        input.focus();
+        input.setSelectionRange(nextCaret, nextCaret);
+      }
+    }, 0);
   };
 
   if (loadingGroup) {
@@ -1203,24 +1359,142 @@ export default function GroupDetailPage() {
                 <p className="no-replies">No replies yet. Be the first to respond!</p>
               ) : (
                 <div className="replies-list">
-                  {threadReplies.map((reply) => (
-                    <div key={reply.id} className="reply-item">
-                      <img
-                        className="reply-avatar"
-                        src={`/avatars/${getAuthorAvatar(reply.authorEmail, reply.authorAvatar)}.svg`}
-                        alt={`${getAuthorDisplayName(reply.authorEmail, reply.authorName)} avatar`}
-                      />
-                      <div className="reply-content">
-                        <div className="reply-header">
-                          <span className="reply-author">{getAuthorDisplayName(reply.authorEmail, reply.authorName)}</span>
-                          <span className="reply-date">
-                            {reply.createdAt
-                              ? new Date(reply.createdAt).toLocaleDateString()
-                              : "Just now"}
-                          </span>
+                  {topLevelReplies.map((reply) => (
+                    <div key={reply.id} className="reply-thread">
+                      <div className="reply-item">
+                        <img
+                          className="reply-avatar"
+                          src={`/avatars/${getAuthorAvatar(reply.authorEmail, reply.authorAvatar)}.svg`}
+                          alt={`${getAuthorDisplayName(reply.authorEmail, reply.authorName)} avatar`}
+                        />
+                        <div className="reply-content">
+                          <div className="reply-header">
+                            <span className="reply-author">{getAuthorDisplayName(reply.authorEmail, reply.authorName)}</span>
+                            <span className="reply-date">
+                              {reply.createdAt
+                                ? new Date(reply.createdAt).toLocaleDateString()
+                                : "Just now"}
+                            </span>
+                          </div>
+                          <p className="reply-body">{reply.body}</p>
+                          <div className="reply-actions">
+                            <button
+                              type="button"
+                              className="reply-action-btn"
+                              onClick={() =>
+                                setActiveReplyTargetId((prev) => {
+                                  const next = prev === reply.id ? null : reply.id;
+                                  if (!next) clearMentionState();
+                                  return next;
+                                })
+                              }
+                            >
+                              Reply
+                            </button>
+                            <button
+                              type="button"
+                              className="reply-action-btn"
+                              onClick={() => handleLikeReply(reply.id)}
+                              disabled={!!likingReplyIds[reply.id]}
+                            >
+                              👍 Like ({reply.likeCount || 0})
+                            </button>
+                          </div>
                         </div>
-                        <p className="reply-body">{reply.body}</p>
                       </div>
+
+                      {getNestedReplies(reply.id).map((nestedReply) => (
+                        <div key={nestedReply.id} className="nested-reply-item">
+                          <img
+                            className="reply-avatar nested"
+                            src={`/avatars/${getAuthorAvatar(nestedReply.authorEmail, nestedReply.authorAvatar)}.svg`}
+                            alt={`${getAuthorDisplayName(nestedReply.authorEmail, nestedReply.authorName)} avatar`}
+                          />
+                          <div className="reply-content nested">
+                            <div className="reply-header">
+                              <span className="reply-author">
+                                {getAuthorDisplayName(nestedReply.authorEmail, nestedReply.authorName)}
+                              </span>
+                              <span className="reply-date">
+                                {nestedReply.createdAt
+                                  ? new Date(nestedReply.createdAt).toLocaleDateString()
+                                  : "Just now"}
+                              </span>
+                            </div>
+                            <p className="reply-body">{nestedReply.body}</p>
+                            <div className="reply-actions">
+                              <button
+                                type="button"
+                                className="reply-action-btn"
+                                onClick={() => handleLikeReply(nestedReply.id)}
+                                disabled={!!likingReplyIds[nestedReply.id]}
+                              >
+                                👍 Like ({nestedReply.likeCount || 0})
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {isLoggedIn && activeReplyTargetId === reply.id && (
+                        <div className="nested-reply-form">
+                          <textarea
+                            ref={(node) => {
+                              if (node) {
+                                nestedReplyInputRefs.current[reply.id] = node;
+                              } else {
+                                delete nestedReplyInputRefs.current[reply.id];
+                              }
+                            }}
+                            className="reply-input nested"
+                            placeholder={`Reply to ${getAuthorDisplayName(reply.authorEmail, reply.authorName)}...`}
+                            rows={2}
+                            value={nestedReplyDrafts[reply.id] || ""}
+                            onChange={(e) => handleNestedReplyChange(reply.id, e)}
+                          />
+                          {activeMentionTarget === reply.id && mentionSuggestions.length > 0 && (
+                            <div className="mention-suggestions">
+                              {mentionSuggestions.map((candidate) => (
+                                <button
+                                  key={`${reply.id}-${candidate.label}`}
+                                  type="button"
+                                  className="mention-suggestion-item"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    insertMention(candidate.label);
+                                  }}
+                                >
+                                  @{candidate.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          <div className="nested-reply-form-actions">
+                            <button
+                              type="button"
+                              className="reply-action-btn"
+                              onClick={() => {
+                                setActiveReplyTargetId(null);
+                                clearMentionState();
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="reply-submit-btn nested"
+                              onClick={() =>
+                                handlePostReply({
+                                  parentReplyId: reply.id,
+                                  body: nestedReplyDrafts[reply.id] || "",
+                                })
+                              }
+                              disabled={!((nestedReplyDrafts[reply.id] || "").trim()) || postingReply}
+                            >
+                              {postingReply ? "Posting..." : "Post Reply"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1235,12 +1509,30 @@ export default function GroupDetailPage() {
                   />
                   <div className="reply-input-wrapper">
                     <textarea
+                      ref={mainReplyInputRef}
                       className="reply-input"
-                      placeholder="Write a reply..."
+                      placeholder="Write a reply... (Type @ to mention someone)"
                       rows={3}
                       value={newReply}
-                      onChange={(e) => setNewReply(e.target.value)}
+                      onChange={handleTopLevelReplyChange}
                     />
+                    {activeMentionTarget === "main" && mentionSuggestions.length > 0 && (
+                      <div className="mention-suggestions">
+                        {mentionSuggestions.map((candidate) => (
+                          <button
+                            key={`main-${candidate.label}`}
+                            type="button"
+                            className="mention-suggestion-item"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              insertMention(candidate.label);
+                            }}
+                          >
+                            @{candidate.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <button
                       className="reply-submit-btn"
                       onClick={handlePostReply}

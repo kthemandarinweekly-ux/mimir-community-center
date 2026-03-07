@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
   // GET - Fetch replies by thread or user
   if (req.method === "GET") {
-    const { threadId, authorEmail } = req.query;
+    const { threadId, authorEmail, countOnly } = req.query;
 
     try {
       let filter = "";
@@ -47,11 +47,16 @@ export default async function handler(req, res) {
         authorName: record.fields.AuthorName || "Member",
         authorEmail: record.fields.AuthorEmail || "",
         authorAvatar: record.fields.AuthorAvatar || "sunrise",
+        parentReplyId: record.fields.ParentReplyId || "",
+        likeCount: Number(record.fields.LikeCount || 0),
         body: record.fields.Body || "",
         createdAt: record.fields.CreatedAt || null,
       }));
-
-      res.status(200).json({ replies });
+      if (countOnly === "true") {
+        res.status(200).json({ count: replies.length });
+      } else {
+        res.status(200).json({ replies });
+      }
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch replies" });
     }
@@ -61,11 +66,24 @@ export default async function handler(req, res) {
   // POST - Create a reply
   if (req.method === "POST") {
     try {
-      const { threadId, threadTitle, groupSlug, authorName, authorEmail, authorAvatar, body } = req.body || {};
+      const { threadId, threadTitle, groupSlug, authorName, authorEmail, authorAvatar, parentReplyId, body } = req.body || {};
       if (!threadId || !body) {
         res.status(400).json({ error: "Thread ID and body are required" });
         return;
       }
+
+      const fields = {
+        ThreadId: threadId,
+        ThreadTitle: threadTitle || "",
+        GroupSlug: groupSlug || "",
+        AuthorName: authorName || "Member",
+        AuthorEmail: authorEmail || "",
+        AuthorAvatar: authorAvatar || "sunrise",
+        ParentReplyId: parentReplyId || "",
+        LikeCount: 0,
+        Body: body,
+        CreatedAt: new Date().toISOString(),
+      };
 
       const response = await fetch(baseUrl, {
         method: "POST",
@@ -76,23 +94,51 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           records: [
             {
-              fields: {
-                ThreadId: threadId,
-                ThreadTitle: threadTitle || "",
-                GroupSlug: groupSlug || "",
-                AuthorName: authorName || "Member",
-                AuthorEmail: authorEmail || "",
-                AuthorAvatar: authorAvatar || "sunrise",
-                Body: body,
-                CreatedAt: new Date().toISOString(),
-              },
+              fields,
             },
           ],
         }),
       });
 
       if (!response.ok) {
-        res.status(response.status).json({ error: "Failed to create reply" });
+        if (parentReplyId) {
+          res.status(400).json({
+            error: "Nested replies require a ParentReplyId field in Airtable Replies table",
+          });
+          return;
+        }
+
+        // Backward-compatible fallback for Airtable bases without new fields.
+        const fallbackResponse = await fetch(baseUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            records: [
+              {
+                fields: {
+                  ThreadId: threadId,
+                  ThreadTitle: threadTitle || "",
+                  GroupSlug: groupSlug || "",
+                  AuthorName: authorName || "Member",
+                  AuthorEmail: authorEmail || "",
+                  AuthorAvatar: authorAvatar || "sunrise",
+                  Body: body,
+                  CreatedAt: new Date().toISOString(),
+                },
+              },
+            ],
+          }),
+        });
+
+        if (!fallbackResponse.ok) {
+          res.status(fallbackResponse.status).json({ error: "Failed to create reply" });
+          return;
+        }
+        const fallbackData = await fallbackResponse.json();
+        res.status(201).json({ id: fallbackData.records?.[0]?.id });
         return;
       }
 
@@ -100,6 +146,44 @@ export default async function handler(req, res) {
       res.status(201).json({ id: data.records?.[0]?.id });
     } catch (error) {
       res.status(500).json({ error: "Failed to create reply" });
+    }
+    return;
+  }
+
+  // PATCH - Update like count for a reply
+  if (req.method === "PATCH") {
+    try {
+      const { replyId, likeCount } = req.body || {};
+      if (!replyId || typeof likeCount !== "number") {
+        res.status(400).json({ error: "Reply ID and like count are required" });
+        return;
+      }
+
+      const response = await fetch(baseUrl, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          records: [
+            {
+              id: replyId,
+              fields: {
+                LikeCount: Math.max(0, likeCount),
+              },
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        res.status(response.status).json({ error: "Failed to update like count" });
+        return;
+      }
+      res.status(200).json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update like count" });
     }
     return;
   }
