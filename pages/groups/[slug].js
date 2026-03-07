@@ -716,7 +716,7 @@ export default function GroupDetailPage() {
     threadReplies.filter((reply) => reply.parentReplyId === parentReplyId);
 
   const mentionCandidates = useMemo(() => {
-    const map = new Map();
+    const map = new Map([["all", { label: "all", email: "" }]]);
     const addCandidate = (email, fallbackName) => {
       const label = getAuthorDisplayName(email, fallbackName);
       if (!label) return;
@@ -1511,7 +1511,7 @@ export default function GroupDetailPage() {
                     <textarea
                       ref={mainReplyInputRef}
                       className="reply-input"
-                      placeholder="Write a reply... (Type @ to mention someone)"
+                      placeholder="Write a reply... (Type @ to mention someone, @all to notify all participants)"
                       rows={3}
                       value={newReply}
                       onChange={handleTopLevelReplyChange}
