@@ -2,83 +2,13 @@ import Head from "next/head";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import MinimalNav from "../components/MinimalNav";
-
-const seasons = [
-  {
-    id: "2026-1",
-    label: "2026 Season 1",
-    active: true,
-    topic: "Should AI tools be used in schools?",
-    description: "As artificial intelligence reshapes education worldwide, this debate explores the balance between technological innovation and traditional learning methods.",
-    why: {
-      intro: "This topic matters because AI is rapidly transforming how students learn, teachers teach, and schools operate. The decisions we make today will shape education for generations.",
-      chinese: {
-        title: "为什么这个话题很重要",
-        points: [
-          "中国正在大力推进教育数字化转型，AI工具在课堂中的应用日益普及",
-          "学生需要培养批判性思维，辨别AI生成内容与人类创作的区别",
-          "教育公平问题：城乡之间的AI资源差距可能扩大教育不平等"
-        ]
-      },
-      spanish: {
-        title: "¿Por qué es importante este tema?",
-        points: [
-          "América Latina enfrenta desafíos únicos en la adopción de tecnología educativa",
-          "El debate sobre la dependencia tecnológica vs. el pensamiento crítico es esencial",
-          "Las comunidades hispanohablantes buscan equilibrar tradición e innovación en la educación"
-        ]
-      },
-      english: {
-        title: "Why This Topic Matters",
-        points: [
-          "Schools worldwide are adopting AI tools at unprecedented rates without clear guidelines",
-          "Students must learn to use AI responsibly while developing authentic skills",
-          "The future workforce will require both AI literacy and uniquely human capabilities"
-        ]
-      }
-    },
-    languages: ["Chinese", "Spanish", "English"],
-    materialLinks: {
-      chinese: "/competitions#chinese",
-      spanish: "/competitions#spanish",
-      english: "/competitions#english"
-    },
-    relatedGroups: [
-      { slug: "intermediate-chinese", name: "Intermediate Chinese" },
-      { slug: "advanced-chinese", name: "Advanced Chinese" },
-      { slug: "intermediate-spanish", name: "Intermediate Spanish" },
-      { slug: "advanced-spanish", name: "Advanced Spanish" },
-      { slug: "intermediate-english", name: "Intermediate English" },
-      { slug: "advanced-english", name: "Advanced English" },
-    ]
-  },
-  {
-    id: "2026-2",
-    label: "2026 Season 2",
-    active: false,
-    topic: "Coming Soon",
-    description: "Stay tuned for the next debate topic. Join the community to be notified when it's announced."
-  },
-  {
-    id: "2026-3",
-    label: "2026 Season 3",
-    active: false,
-    topic: "Coming Soon",
-    description: "Future debate topic will be announced. Subscribe to updates."
-  },
-  {
-    id: "2026-4",
-    label: "2026 Season 4",
-    active: false,
-    topic: "Coming Soon",
-    description: "Future debate topic will be announced. Subscribe to updates."
-  }
-];
+import { getCurrentSeason, seasons } from "../data/seasons";
 
 export default function DebatePage() {
   const { status } = useSession();
   const isLoggedIn = status === "authenticated";
-  const currentSeason = seasons[0];
+  const currentSeason = getCurrentSeason();
+  const otherSeasons = seasons.filter((season) => season.id !== currentSeason.id);
 
   return (
     <>
@@ -101,6 +31,7 @@ export default function DebatePage() {
             <span className="debate-season-badge">{currentSeason.label}</span>
             <h1 className="debate-main-title">{currentSeason.topic}</h1>
             <p className="debate-main-desc">{currentSeason.description}</p>
+            <p className="debate-main-desc">{currentSeason.timeline}</p>
           </section>
 
           {/* Why This Topic Section */}
@@ -195,13 +126,14 @@ export default function DebatePage() {
             </div>
           </section>
 
-          {/* Upcoming Seasons */}
+          {/* Other Seasons */}
           <section className="debate-seasons-section">
-            <h2>Upcoming Seasons</h2>
+            <h2>Season Archive & Upcoming</h2>
             <div className="seasons-grid">
-              {seasons.slice(1).map((season) => (
+              {otherSeasons.map((season) => (
                 <article key={season.id} className="season-card upcoming">
                   <span className="season-label">{season.label}</span>
+                  <p>{season.timeline}</p>
                   <h3>{season.topic}</h3>
                   <p>{season.description}</p>
                 </article>

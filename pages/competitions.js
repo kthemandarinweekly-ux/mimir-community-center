@@ -3,8 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import MinimalNav from "../components/MinimalNav";
-
-const seasonTopic = "Should AI tools be used in schools?";
+import { getCurrentSeason } from "../data/seasons";
 
 const languageConfigs = [
   {
@@ -37,6 +36,7 @@ async function fetchAllMaterials() {
 export default function CompetitionsPage() {
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
+  const currentSeason = getCurrentSeason();
 
   const [materials, setMaterials] = useState({
     english: { watch: [], read: [] },
@@ -153,8 +153,8 @@ export default function CompetitionsPage() {
 
         <main className="minimal-content">
           <section className="minimal-hero">
-            <p className="minimal-label">2026 Season 1</p>
-            <h1 className="minimal-title">{seasonTopic}</h1>
+            <p className="minimal-label">{currentSeason.label}</p>
+            <h1 className="minimal-title">{currentSeason.topic}</h1>
             <p className="minimal-subtitle">
               Explore curated materials by language. Save your favorites to your library.
             </p>

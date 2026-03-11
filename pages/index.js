@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import MinimalNav from "../components/MinimalNav";
+import { getCurrentSeason } from "../data/seasons";
 
 const TYPING_PHRASES = [
   "Learn a language through debate",
@@ -15,6 +16,7 @@ const TYPING_PHRASES = [
 export default function Home() {
   const { status } = useSession();
   const isLoggedIn = status === "authenticated";
+  const currentSeason = getCurrentSeason();
 
   // Typewriter effect state
   const [phraseIndex, setPhraseIndex] = useState(0);
@@ -107,15 +109,17 @@ export default function Home() {
       {/* Season Topic Section - Colorful Banner */}
       <section className="home-topic-banner">
         <div className="topic-banner-content">
-          <span className="topic-badge">🔥 Season 1 Topic</span>
-          <h2 className="topic-title">Should AI tools be used in schools?</h2>
+          <span className="topic-badge">🔥 {currentSeason.label} Topic</span>
+          <h2 className="topic-title">{currentSeason.topic}</h2>
           <p className="topic-desc">
-            One topic. Three languages. A global community debating together.
+            {currentSeason.bannerDescription || "One topic. Three languages. A global community debating together."}
           </p>
           <div className="topic-languages">
-            <span className="lang-pill chinese">Chinese</span>
-            <span className="lang-pill spanish">Spanish</span>
-            <span className="lang-pill english">English</span>
+            {(currentSeason.languages || ["Chinese", "Spanish", "English"]).map((language) => (
+              <span key={language} className={`lang-pill ${language.toLowerCase()}`}>
+                {language}
+              </span>
+            ))}
           </div>
           <Link href="/debate" className="topic-link">
             Explore this topic →
