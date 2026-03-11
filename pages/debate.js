@@ -171,7 +171,7 @@ export default function DebatePage() {
               <Link href="/calendar" className="quick-link-card calendar">
                 <span className="quick-icon">📅</span>
                 <h3>Live Sessions</h3>
-                <p>Join free weekly debate classes</p>
+                <p>Join free debate classes</p>
               </Link>
               <Link href="/groups" className="quick-link-card groups">
                 <span className="quick-icon">👥</span>

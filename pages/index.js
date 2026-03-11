@@ -166,7 +166,7 @@ export default function Home() {
         <div className="home-features">
           <article className="home-feature-card feature-coral">
             <div className="feature-emoji">🎬</div>
-            <h3>Weekly Live Sessions</h3>
+            <h3>Live Sessions</h3>
             <p>Free lessons with teachers focused on the seasonal topic.</p>
             <span className="feature-tag">Free</span>
           </article>
