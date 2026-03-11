@@ -24,8 +24,9 @@ const languageConfigs = [
 ];
 
 // Fetch all materials and group by language
-async function fetchAllMaterials() {
-  const response = await fetch("/api/materials");
+async function fetchAllMaterials(seasonId) {
+  const seasonQuery = seasonId ? `?seasonId=${encodeURIComponent(seasonId)}` : "";
+  const response = await fetch(`/api/materials${seasonQuery}`);
   if (!response.ok) {
     return [];
   }
@@ -48,7 +49,7 @@ export default function CompetitionsPage() {
 
   useEffect(() => {
     const loadMaterials = async () => {
-      const allMaterials = await fetchAllMaterials();
+      const allMaterials = await fetchAllMaterials(currentSeason.id);
 
       // Group materials by language based on groupSlug keywords
       const grouped = {
@@ -77,7 +78,7 @@ export default function CompetitionsPage() {
     };
 
     loadMaterials();
-  }, []);
+  }, [currentSeason.id]);
 
   // Load saved materials for logged-in users
   useEffect(() => {

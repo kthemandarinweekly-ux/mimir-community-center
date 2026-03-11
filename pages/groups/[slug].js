@@ -8,6 +8,7 @@ import { useProfile } from "../../components/useProfile";
 import { useMemberships } from "../../components/useMemberships";
 import { getBadgeLevel } from "../../components/useBadge";
 import AddToCalendarDropdown from "../../components/AddToCalendarDropdown";
+import { getCurrentSeason } from "../../data/seasons";
 
 // Fallback group data
 const fallbackGroups = {
@@ -134,6 +135,7 @@ export default function GroupDetailPage() {
   };
 
   const groupLanguage = getLanguageFromSlug(slug);
+  const currentSeason = getCurrentSeason();
 
   const currentAvatar = profile.avatar || "sunrise";
   const currentName = profile.nickname || session?.user?.name || "Member";
@@ -185,7 +187,9 @@ export default function GroupDetailPage() {
 
     const fetchMaterials = async () => {
       try {
-        const response = await fetch(`/api/materials?groupSlug=${slug}`);
+        const response = await fetch(
+          `/api/materials?groupSlug=${slug}&seasonId=${encodeURIComponent(currentSeason.id)}`
+        );
         if (response.ok) {
           const data = await response.json();
           setMaterials(data.materials || []);
@@ -196,7 +200,7 @@ export default function GroupDetailPage() {
     };
 
     fetchMaterials();
-  }, [slug]);
+  }, [slug, currentSeason.id]);
 
   // Fetch saved materials for logged-in user
   useEffect(() => {
@@ -864,7 +868,7 @@ export default function GroupDetailPage() {
                   </article>
                   <article className="detail-card">
                     <p className="label">Coming soon</p>
-                    <h3>Seasonal topic workshop</h3>
+                    <h3>{currentSeason.label} topic workshop</h3>
                     <p>Live session · Online</p>
                   </article>
                 </>
@@ -911,7 +915,7 @@ export default function GroupDetailPage() {
                   {materials.filter((item) => item.type === "watch").length === 0 && (
                     <>
                       <li>Weekly highlight reel</li>
-                      <li>Season topic overview</li>
+                      <li>{currentSeason.topic}</li>
                     </>
                   )}
                 </ul>
