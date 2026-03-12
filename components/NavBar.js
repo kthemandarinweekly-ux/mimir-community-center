@@ -49,6 +49,7 @@ export default function NavBar({ action }) {
   const actionHref = action?.href || (session ? "/account" : "/signin");
   const actionLabel = action?.label || (session ? nickname || userLabel : "Sign in");
   const actionClass = action?.className || "cta ghost";
+  const actionUsesAvatar = action?.icon === "avatar";
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",") || [];
   const isAdmin = adminEmails.includes(session?.user?.email || "");
 
@@ -69,7 +70,13 @@ export default function NavBar({ action }) {
         {isAdmin ? <Link href="/admin">Admin</Link> : null}
       </div>
       <Link className={`${actionClass} nav-account`} href={actionHref}>
-        {session && (
+        {session && actionUsesAvatar ? (
+          <img
+            className="nav-avatar"
+            src={`/avatars/${profile.avatar || "sunrise"}.svg`}
+            alt="Profile avatar"
+          />
+        ) : session ? (
           <span
             className="nav-badge-icon"
             title={`${badgeInfo.badge.name} - Level ${badgeInfo.badge.level}`}
@@ -79,7 +86,7 @@ export default function NavBar({ action }) {
           >
             {badgeInfo.badge.emoji}
           </span>
-        )}
+        ) : null}
         {actionLabel}
       </Link>
     </nav>

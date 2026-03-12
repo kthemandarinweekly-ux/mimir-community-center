@@ -255,7 +255,7 @@ export default function AdminPage() {
       </Head>
       <div className="grain"></div>
       <header className="site-header compact">
-        <NavBar action={{ label: "User center", href: "/account" }} />
+        <NavBar action={{ href: "/account", icon: "avatar" }} />
         <section className="detail-hero">
           <div>
             <p className="eyebrow">Admin center</p>
