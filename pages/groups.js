@@ -77,7 +77,7 @@ export default function GroupsPage() {
             <div className="canva-benefits">
               <article className="canva-card coral">
                 <div className="canva-card-icon">🎥</div>
-                <h3>Weekly Live Sessions</h3>
+                <h3>Live Sessions</h3>
                 <p>Free lessons with teachers focused on the seasonal topic.</p>
                 <div className="canva-card-accent"></div>
               </article>
