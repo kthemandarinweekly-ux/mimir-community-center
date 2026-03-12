@@ -10,6 +10,8 @@ export default function AdminPage() {
   const isAdmin = adminEmails.includes(session?.user?.email || "");
   const [events, setEvents] = useState([]);
   const [members, setMembers] = useState([]);
+  const [threads, setThreads] = useState([]);
+  const [replies, setReplies] = useState([]);
   const [drafts, setDrafts] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -27,9 +29,11 @@ export default function AdminPage() {
     setLoading(true);
     setError("");
     try {
-      const [eventsRes, membersRes] = await Promise.all([
+      const [eventsRes, membersRes, threadsRes, repliesRes] = await Promise.all([
         fetch("/api/events"),
         fetch("/api/members"),
+        fetch("/api/threads"),
+        fetch("/api/replies"),
       ]);
       if (eventsRes.ok) {
         const eventsData = await eventsRes.json();
@@ -38,6 +42,14 @@ export default function AdminPage() {
       if (membersRes.ok) {
         const membersData = await membersRes.json();
         setMembers(membersData.members || []);
+      }
+      if (threadsRes.ok) {
+        const threadsData = await threadsRes.json();
+        setThreads(threadsData.threads || []);
+      }
+      if (repliesRes.ok) {
+        const repliesData = await repliesRes.json();
+        setReplies(repliesData.replies || []);
       }
     } catch (err) {
       setError("Unable to load admin data.");
@@ -142,6 +154,29 @@ export default function AdminPage() {
           </div>
         ) : (
           <>
+            <section className="admin-card">
+              <h2>Overview</h2>
+              {loading ? <p className="label">Loading dashboard...</p> : null}
+              <div className="stat-grid two">
+                <div>
+                  <p className="label">Members</p>
+                  <p className="value">{members.length}</p>
+                </div>
+                <div>
+                  <p className="label">Events</p>
+                  <p className="value">{events.length}</p>
+                </div>
+                <div>
+                  <p className="label">Topics</p>
+                  <p className="value">{threads.length}</p>
+                </div>
+                <div>
+                  <p className="label">Replies</p>
+                  <p className="value">{replies.length}</p>
+                </div>
+              </div>
+            </section>
+
             <section className="admin-card">
               <h2>Members</h2>
               {loading ? <p className="label">Loading members...</p> : null}

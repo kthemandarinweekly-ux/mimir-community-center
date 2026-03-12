@@ -89,15 +89,47 @@ providers.push(
       password: { label: "Password", type: "password" },
     },
     async authorize(credentials) {
-      const demoEmail = process.env.DEMO_EMAIL;
-      const demoPassword = process.env.DEMO_PASSWORD;
-
-      if (!demoEmail || !demoPassword || !credentials) {
+      if (!credentials?.email || !credentials?.password) {
         return null;
       }
 
-      if (credentials.email === demoEmail && credentials.password === demoPassword) {
-        return { id: "demo-user", name: "Demo Member", email: demoEmail };
+      const normalizedEmail = credentials.email.trim().toLowerCase();
+      const demoEmail = process.env.DEMO_EMAIL;
+      const demoPassword = process.env.DEMO_PASSWORD;
+      const adminLoginEmail = process.env.ADMIN_LOGIN_EMAIL;
+      const adminLoginPassword = process.env.ADMIN_LOGIN_PASSWORD;
+      const credentialAccounts = [];
+
+      if (adminLoginEmail && adminLoginPassword) {
+        credentialAccounts.push({
+          id: "admin-credential-user",
+          name: "Admin",
+          email: adminLoginEmail,
+          password: adminLoginPassword,
+        });
+      }
+
+      if (demoEmail && demoPassword) {
+        credentialAccounts.push({
+          id: "demo-user",
+          name: "Demo Member",
+          email: demoEmail,
+          password: demoPassword,
+        });
+      }
+
+      const matchedAccount = credentialAccounts.find(
+        (account) =>
+          account.email.toLowerCase() === normalizedEmail &&
+          account.password === credentials.password
+      );
+
+      if (matchedAccount) {
+        return {
+          id: matchedAccount.id,
+          name: matchedAccount.name,
+          email: matchedAccount.email,
+        };
       }
 
       return null;
