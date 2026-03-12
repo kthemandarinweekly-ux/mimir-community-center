@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 
-const STORAGE_KEY = "mimirProfile";
+const STORAGE_KEY_PREFIX = "mimirProfile";
 const defaultProfile = { nickname: "", avatar: "sunrise" };
 
 const safeParse = (value) => {
@@ -15,11 +15,18 @@ const safeParse = (value) => {
   }
 };
 
-export const getStoredProfile = () => {
+const getStorageKey = (email) => {
+  const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+  return normalizedEmail
+    ? `${STORAGE_KEY_PREFIX}:${normalizedEmail}`
+    : `${STORAGE_KEY_PREFIX}:anonymous`;
+};
+
+export const getStoredProfile = (email) => {
   if (typeof window === "undefined") {
     return defaultProfile;
   }
-  const stored = safeParse(window.localStorage.getItem(STORAGE_KEY));
+  const stored = safeParse(window.localStorage.getItem(getStorageKey(email)));
   if (!stored) {
     return defaultProfile;
   }
@@ -34,16 +41,17 @@ export const useProfile = () => {
   const [profile, setProfile] = useState(defaultProfile);
   const [loading, setLoading] = useState(false);
   const [synced, setSynced] = useState(false);
+  const userEmail = session?.user?.email || "";
 
   // Fetch profile from Airtable if logged in
   const fetchProfile = useCallback(async () => {
-    if (!session?.user?.email) {
+    if (!userEmail) {
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/users?email=${encodeURIComponent(session.user.email)}`);
+      const response = await fetch(`/api/users?email=${encodeURIComponent(userEmail)}`);
       if (response.ok) {
         const data = await response.json();
         const serverProfile = {
@@ -53,22 +61,26 @@ export const useProfile = () => {
         setProfile(serverProfile);
         // Also update localStorage as cache
         if (typeof window !== "undefined") {
-          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(serverProfile));
+          window.localStorage.setItem(getStorageKey(userEmail), JSON.stringify(serverProfile));
         }
         setSynced(true);
       } else if (response.status === 404) {
-        // User doesn't exist in Airtable yet, create them
+        // User doesn't exist in Airtable yet, create with neutral defaults
         const createResponse = await fetch("/api/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: session.user.email,
+            email: userEmail,
             name: session.user.name || "",
-            nickname: profile.nickname || "",
-            avatar: profile.avatar || "sunrise",
+            nickname: "",
+            avatar: "sunrise",
           }),
         });
         if (createResponse.ok) {
+          setProfile(defaultProfile);
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem(getStorageKey(userEmail), JSON.stringify(defaultProfile));
+          }
           setSynced(true);
         }
       }
@@ -77,39 +89,40 @@ export const useProfile = () => {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.email, session?.user?.name]);
+  }, [userEmail, session?.user?.name]);
 
   useEffect(() => {
-    // First load from localStorage for instant display
-    setProfile(getStoredProfile());
+    // Load from this user's local cache for instant display
+    setProfile(getStoredProfile(userEmail));
+    setSynced(false);
 
-    const handleStorage = () => setProfile(getStoredProfile());
+    const handleStorage = () => setProfile(getStoredProfile(userEmail));
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
-  }, []);
+  }, [userEmail]);
 
   // Fetch from server when session is available
   useEffect(() => {
-    if (session?.user?.email && !synced) {
+    if (userEmail && !synced) {
       fetchProfile();
     }
-  }, [session?.user?.email, synced, fetchProfile]);
+  }, [userEmail, synced, fetchProfile]);
 
   const saveProfile = async (next) => {
     setProfile(next);
     // Save to localStorage immediately for instant feedback
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      window.localStorage.setItem(getStorageKey(userEmail), JSON.stringify(next));
     }
 
     // Sync to Airtable if logged in
-    if (session?.user?.email) {
+    if (userEmail) {
       try {
         await fetch("/api/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: session.user.email,
+            email: userEmail,
             name: session.user.name || "",
             nickname: next.nickname,
             avatar: next.avatar,
