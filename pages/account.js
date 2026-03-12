@@ -182,6 +182,56 @@ export default function AccountPage() {
   // Get badge info
   const badgeInfo = useBadge(userStats);
 
+  const nextStepActions = useMemo(() => {
+    const actions = [
+      {
+        id: "groups",
+        href: "/groups",
+        title: "Find a group to join",
+        description: "Join a language group first, then you can start or reply to topics.",
+        cta: "Browse Groups",
+      },
+      {
+        id: "calendar",
+        href: "/calendar",
+        title: "Check this week's live sessions",
+        description: "Save a class on the calendar so you get reminders and easy access.",
+        cta: "Open Calendar",
+      },
+      {
+        id: "debate",
+        href: "/debate",
+        title: "Explore the teacher's debate topic",
+        description: "Read the current season prompt and prepare ideas before discussions.",
+        cta: "Go to Debate",
+      },
+      {
+        id: "discussions",
+        href: memberships.length > 0 ? `/groups/${memberships[0].groupSlug}` : "/groups",
+        title: "Reply to a group topic",
+        description: "Contribute one short reply to start building your conversation history.",
+        cta: "Join Discussions",
+      },
+      {
+        id: "materials",
+        href: "/competitions",
+        title: "Save learning materials",
+        description: "Collect useful watch/read resources for quick review later.",
+        cta: "Browse Materials",
+      },
+    ];
+
+    let primaryId = "debate";
+    if (userStats.groupsJoined === 0) primaryId = "groups";
+    else if (userStats.eventsSaved === 0) primaryId = "calendar";
+    else if (userStats.repliesMade === 0 && userStats.threadsStarted === 0) primaryId = "discussions";
+    else if (userStats.materialsSaved === 0) primaryId = "materials";
+
+    const primary = actions.find((action) => action.id === primaryId) || actions[0];
+    const secondary = actions.filter((action) => action.id !== primary.id).slice(0, 2);
+    return { primary, secondary };
+  }, [memberships, userStats]);
+
   // Generate AI recommendations based on user's current activity
   const recommendations = useMemo(() => {
     const recs = [];
@@ -313,9 +363,26 @@ export default function AccountPage() {
                 Manage your groups, track saved materials, and see upcoming events.
               </p>
             </div>
-            <button className="account-signout" onClick={() => signOut({ callbackUrl: "/" })}>
-              Sign Out
-            </button>
+            <div className="account-header-side">
+              <aside className="next-step-panel">
+                <p className="next-step-kicker">Need a next step?</p>
+                <h2>{nextStepActions.primary.title}</h2>
+                <p className="next-step-description">{nextStepActions.primary.description}</p>
+                <Link href={nextStepActions.primary.href} className="next-step-primary-cta">
+                  {nextStepActions.primary.cta}
+                </Link>
+                <div className="next-step-secondary-list">
+                  {nextStepActions.secondary.map((action) => (
+                    <Link key={action.id} href={action.href} className="next-step-secondary-link">
+                      {action.title}
+                    </Link>
+                  ))}
+                </div>
+              </aside>
+              <button className="account-signout" onClick={() => signOut({ callbackUrl: "/" })}>
+                Sign Out
+              </button>
+            </div>
           </section>
 
           {/* Badge Progress Section - Duolingo-inspired */}

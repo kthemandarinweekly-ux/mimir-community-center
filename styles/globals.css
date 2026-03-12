@@ -3665,6 +3665,85 @@ p {
   color: #6a6070;
 }
 
+.account-header-side {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+
+.next-step-panel {
+  width: min(320px, 100%);
+  padding: 18px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f7f5ff 0%, #ffffff 100%);
+  border: 1px solid rgba(122, 92, 255, 0.2);
+}
+
+.next-step-kicker {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a5cff;
+  font-weight: 700;
+}
+
+.next-step-panel h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  color: #1a1425;
+  line-height: 1.25;
+}
+
+.next-step-description {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: #6a6070;
+  line-height: 1.45;
+}
+
+.next-step-primary-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border-radius: 10px;
+  padding: 11px 14px;
+  background: #7a5cff;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.next-step-primary-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(122, 92, 255, 0.22);
+}
+
+.next-step-secondary-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.next-step-secondary-link {
+  display: block;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: #4f4661;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.next-step-secondary-link:hover {
+  border-color: rgba(122, 92, 255, 0.45);
+  color: #7a5cff;
+}
+
 .account-signout {
   background: none;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -4099,6 +4178,19 @@ p {
 @media (max-width: 768px) {
   .account-header {
     flex-direction: column;
+  }
+
+  .account-header-side {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .next-step-panel {
+    width: 100%;
+  }
+
+  .account-signout {
+    justify-self: start;
   }
 
   .account-stats {
