@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import NavBar from "../components/NavBar";
 import { useProfile } from "../components/useProfile";
 import { getCurrentSeason } from "../data/seasons";
@@ -10,8 +11,9 @@ import { calculatePoints, getBadgeLevel } from "../components/useBadge";
 const AVATAR_OPTIONS = ["sunrise", "mint", "plum", "ember", "berry"];
 
 export default function AdminPage() {
+  const router = useRouter();
   const currentSeason = getCurrentSeason();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { profile, saveProfile } = useProfile();
   const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
     .split(",")
@@ -93,6 +95,12 @@ export default function AdminPage() {
       loadData();
     }
   }, [isAdmin, currentSeason.id]);
+
+  useEffect(() => {
+    if (status === "authenticated" && !isAdmin) {
+      router.replace("/account");
+    }
+  }, [status, isAdmin, router]);
 
   const handleSaveProfile = () => {
     saveProfile({ nickname: nickname.trim(), avatar: selectedAvatar });
