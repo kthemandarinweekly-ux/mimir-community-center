@@ -7,7 +7,11 @@ import MinimalNav from "../components/MinimalNav";
 
 export default function SignInPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -15,9 +19,11 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/account");
+      const signedInEmail = (session?.user?.email || "").toLowerCase();
+      const destination = adminEmails.includes(signedInEmail) ? "/admin" : "/account";
+      router.replace(destination);
     }
-  }, [status, router]);
+  }, [status, session?.user?.email, router]);
 
   useEffect(() => {
     if (router.query?.error) {
@@ -43,7 +49,8 @@ export default function SignInPage() {
       return;
     }
 
-    await router.push("/account");
+    const normalizedEmail = email.trim().toLowerCase();
+    await router.push(adminEmails.includes(normalizedEmail) ? "/admin" : "/account");
     setIsSubmitting(false);
   };
 
@@ -73,7 +80,7 @@ export default function SignInPage() {
               <button
                 className="signin-google"
                 type="button"
-                onClick={() => signIn("google", { callbackUrl: "/account" })}
+                onClick={() => signIn("google", { callbackUrl: "/admin" })}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

@@ -12,6 +12,10 @@ import { BadgeIcon, BadgeProgress, ShareableBadgeCard, LevelRules } from "../com
 export default function AccountPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
   const { profile, saveProfile } = useProfile();
   const { memberships } = useMemberships();
   const defaultName = session?.user?.name || session?.user?.email || "Member";
@@ -31,8 +35,13 @@ export default function AccountPage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/signin");
+      return;
     }
-  }, [status, router]);
+    const signedInEmail = (session?.user?.email || "").toLowerCase();
+    if (status === "authenticated" && adminEmails.includes(signedInEmail)) {
+      router.replace("/admin");
+    }
+  }, [status, session?.user?.email, router]);
 
   useEffect(() => {
     setNickname(profile.nickname || "");
