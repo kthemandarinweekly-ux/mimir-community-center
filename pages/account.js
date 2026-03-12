@@ -201,7 +201,7 @@ export default function AccountPage() {
       {
         id: "debate",
         href: "/debate",
-        title: "Explore the teacher's debate topic",
+        title: "Explore this season's debate topic",
         description: "Read the current season prompt and prepare ideas before discussions.",
         cta: "Go to Debate",
       },
