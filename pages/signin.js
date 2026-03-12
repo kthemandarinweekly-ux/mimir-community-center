@@ -11,6 +11,7 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState("");
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -18,15 +19,31 @@ export default function SignInPage() {
     }
   }, [status, router]);
 
+  useEffect(() => {
+    if (router.query?.error) {
+      setAuthError("Sign in failed. Please check your email and password.");
+    }
+  }, [router.query?.error]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
-    await signIn("credentials", {
-      redirect: true,
-      email,
+    setAuthError("");
+
+    const response = await signIn("credentials", {
+      redirect: false,
+      email: email.trim().toLowerCase(),
       password,
       callbackUrl: "/account",
     });
+
+    if (response?.error) {
+      setAuthError("Invalid email or password.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    await router.push("/account");
     setIsSubmitting(false);
   };
 
@@ -95,6 +112,7 @@ export default function SignInPage() {
                 <button className="signin-submit" type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Signing in..." : "Sign In"}
                 </button>
+                {authError && <p className="label" style={{ color: "#c0392b", marginTop: "8px" }}>{authError}</p>}
               </form>
             </div>
 
