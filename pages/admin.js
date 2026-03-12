@@ -1,13 +1,15 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import NavBar from "../components/NavBar";
 import { useProfile } from "../components/useProfile";
+import { getCurrentSeason } from "../data/seasons";
 
 const AVATAR_OPTIONS = ["sunrise", "mint", "plum", "ember", "berry"];
 
 export default function AdminPage() {
+  const currentSeason = getCurrentSeason();
   const { data: session } = useSession();
   const { profile, saveProfile } = useProfile();
   const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
@@ -22,6 +24,7 @@ export default function AdminPage() {
   const [memberships, setMemberships] = useState([]);
   const [threads, setThreads] = useState([]);
   const [replies, setReplies] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,6 +49,7 @@ export default function AdminPage() {
         fetch("/api/replies"),
         fetch("/api/announcements?limit=20"),
       ]);
+      const materialsRes = await fetch(`/api/materials?seasonId=${encodeURIComponent(currentSeason.id)}`);
       if (eventsRes.ok) {
         const eventsData = await eventsRes.json();
         setEvents(eventsData.events || []);
@@ -70,6 +74,10 @@ export default function AdminPage() {
         const announcementsData = await announcementsRes.json();
         setAnnouncements(announcementsData.announcements || []);
       }
+      if (materialsRes.ok) {
+        const materialsData = await materialsRes.json();
+        setMaterials(materialsData.materials || []);
+      }
     } catch (err) {
       setError("Unable to load admin data.");
     } finally {
@@ -81,7 +89,7 @@ export default function AdminPage() {
     if (isAdmin) {
       loadData();
     }
-  }, [isAdmin]);
+  }, [isAdmin, currentSeason.id]);
 
   const handleSaveProfile = () => {
     saveProfile({ nickname: nickname.trim(), avatar: selectedAvatar });
@@ -166,6 +174,49 @@ export default function AdminPage() {
   const recentAnnouncements = [...announcements]
     .sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0))
     .slice(0, 8);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const recentReplyCount = replies.filter((reply) => reply.createdAt && new Date(reply.createdAt) >= sevenDaysAgo).length;
+  const recentAnnouncementCount = announcements.filter((item) => item.publishedAt && new Date(item.publishedAt) >= sevenDaysAgo).length;
+  const membersWithoutGroups = memberDirectory.filter((m) => m.groupCount === 0).length;
+
+  const healthChecks = [
+    {
+      id: "no-events",
+      ok: upcomingEvents.length > 0,
+      text: upcomingEvents.length > 0
+        ? `${upcomingEvents.length} upcoming event(s) scheduled`
+        : "No upcoming events scheduled",
+    },
+    {
+      id: "reply-activity",
+      ok: recentReplyCount > 0,
+      text: recentReplyCount > 0
+        ? `${recentReplyCount} reply/replies in the last 7 days`
+        : "No replies in the last 7 days",
+    },
+    {
+      id: "announcement-activity",
+      ok: recentAnnouncementCount > 0,
+      text: recentAnnouncementCount > 0
+        ? `${recentAnnouncementCount} announcement(s) posted in the last 7 days`
+        : "No announcements posted in the last 7 days",
+    },
+    {
+      id: "season-materials",
+      ok: materials.length >= 6,
+      text: materials.length >= 6
+        ? `${materials.length} material(s) available for ${currentSeason.label}`
+        : `Only ${materials.length} material(s) for ${currentSeason.label} (recommended: 6+)`,
+    },
+    {
+      id: "member-coverage",
+      ok: membersWithoutGroups === 0,
+      text: membersWithoutGroups === 0
+        ? "All members are assigned to at least one group"
+        : `${membersWithoutGroups} member(s) are not in any group`,
+    },
+  ];
+  const warningChecks = healthChecks.filter((item) => !item.ok);
 
   return (
     <>
@@ -188,6 +239,14 @@ export default function AdminPage() {
             <p className="lead">
               Real-time website status from Airtable. Edit content directly in Airtable, monitor everything here.
             </p>
+            <button
+              className="cta ghost small"
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/signin" })}
+              style={{ marginTop: "12px" }}
+            >
+              Sign out
+            </button>
           </div>
         </section>
       </header>
@@ -234,6 +293,34 @@ export default function AdminPage() {
                   <p className="value">{upcomingEvents.length}</p>
                 </div>
               </div>
+            </section>
+
+            <section className="admin-card">
+              <h2>Health Panel</h2>
+              <p className="label">Operational signals from the last 7 days and current season readiness.</p>
+              <div className="admin-table">
+                <div className="admin-row admin-head">
+                  <span>Status</span>
+                  <span>Signal</span>
+                </div>
+                {healthChecks.map((check) => (
+                  <div key={check.id} className="admin-row">
+                    <span style={{ color: check.ok ? "#1f8a4d" : "#c0392b", fontWeight: 700 }}>
+                      {check.ok ? "OK" : "Warning"}
+                    </span>
+                    <span>{check.text}</span>
+                  </div>
+                ))}
+              </div>
+              {warningChecks.length > 0 ? (
+                <p className="label" style={{ color: "#c0392b" }}>
+                  {warningChecks.length} warning(s) need attention in Airtable.
+                </p>
+              ) : (
+                <p className="label" style={{ color: "#1f8a4d" }}>
+                  All checks are healthy.
+                </p>
+              )}
             </section>
 
             <section className="admin-card">
