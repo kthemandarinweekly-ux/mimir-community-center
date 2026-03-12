@@ -1888,6 +1888,51 @@ p {
   font-size: 0.95rem;
 }
 
+.admin-sync-time {
+  margin-top: -8px;
+}
+
+.admin-health-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  width: fit-content;
+  border: 1px solid transparent;
+}
+
+.admin-health-pill.ok {
+  background: #ebfff3;
+  color: #1f8a4d;
+  border-color: #b8efce;
+}
+
+.admin-health-pill.warn {
+  background: #fff0f0;
+  color: #c0392b;
+  border-color: #f2c0bc;
+}
+
+.admin-member-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-member-badge.admin {
+  background: #f2ecff;
+  border-color: #c9b8ff !important;
+}
+
 .calendar-grid-wrap {
   background: var(--panel);
   border-radius: 28px;

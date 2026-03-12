@@ -5,6 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import NavBar from "../components/NavBar";
 import { useProfile } from "../components/useProfile";
 import { getCurrentSeason } from "../data/seasons";
+import { calculatePoints, getBadgeLevel } from "../components/useBadge";
 
 const AVATAR_OPTIONS = ["sunrise", "mint", "plum", "ember", "berry"];
 
@@ -26,6 +27,7 @@ export default function AdminPage() {
   const [replies, setReplies] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [nickname, setNickname] = useState("");
@@ -78,6 +80,7 @@ export default function AdminPage() {
         const materialsData = await materialsRes.json();
         setMaterials(materialsData.materials || []);
       }
+      setLastSyncedAt(new Date().toISOString());
     } catch (err) {
       setError("Unable to load admin data.");
     } finally {
@@ -111,6 +114,11 @@ export default function AdminPage() {
           threads: 0,
           replies: 0,
           status: "member",
+          badgePoints: 0,
+          badgeName: "Newcomer",
+          badgeEmoji: "🌱",
+          badgeColor: "#FFD93D",
+          badgeLevel: 1,
         });
       } else if (name && !map.get(key).name) {
         map.get(key).name = name;
@@ -147,6 +155,21 @@ export default function AdminPage() {
     });
 
     map.forEach((entry, key) => {
+      const points = calculatePoints({
+        groupsJoined: entry.groupCount,
+        eventsSaved: 0,
+        materialsSaved: 0,
+        threadsStarted: entry.threads,
+        repliesMade: entry.replies,
+      });
+      const badge = getBadgeLevel(points);
+
+      entry.badgePoints = points;
+      entry.badgeName = badge.name;
+      entry.badgeEmoji = badge.emoji;
+      entry.badgeColor = badge.color;
+      entry.badgeLevel = badge.level;
+
       if (adminEmails.includes(key)) {
         entry.status = "admin";
       } else if (entry.groupCount > 0) {
@@ -159,6 +182,7 @@ export default function AdminPage() {
     return Array.from(map.values()).sort((a, b) => {
       if (a.status === "admin" && b.status !== "admin") return -1;
       if (a.status !== "admin" && b.status === "admin") return 1;
+      if (b.badgeLevel !== a.badgeLevel) return b.badgeLevel - a.badgeLevel;
       return b.groupCount - a.groupCount;
     });
   })();
@@ -298,6 +322,9 @@ export default function AdminPage() {
             <section className="admin-card">
               <h2>Health Panel</h2>
               <p className="label">Operational signals from the last 7 days and current season readiness.</p>
+              <p className="label admin-sync-time">
+                Last synced: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleString() : "Not synced yet"}
+              </p>
               <div className="admin-table">
                 <div className="admin-row admin-head">
                   <span>Status</span>
@@ -305,7 +332,7 @@ export default function AdminPage() {
                 </div>
                 {healthChecks.map((check) => (
                   <div key={check.id} className="admin-row">
-                    <span style={{ color: check.ok ? "#1f8a4d" : "#c0392b", fontWeight: 700 }}>
+                    <span className={`admin-health-pill ${check.ok ? "ok" : "warn"}`}>
                       {check.ok ? "OK" : "Warning"}
                     </span>
                     <span>{check.text}</span>
@@ -383,7 +410,17 @@ export default function AdminPage() {
                     <div key={user.email || user.name} className="admin-row">
                       <span>{user.name}</span>
                       <span>{user.email}</span>
-                      <span>{user.status}</span>
+                      <span>
+                        <span
+                          className={`admin-member-badge ${user.status === "admin" ? "admin" : ""}`}
+                          style={{
+                            borderColor: user.badgeColor,
+                            color: user.status === "admin" ? "#5b34cf" : "#1a1425",
+                          }}
+                        >
+                          {user.status === "admin" ? "🛡️ Admin" : user.badgeEmoji} {user.badgeName}
+                        </span>
+                      </span>
                       <span>
                         {user.groups.length > 0 ? user.groups.join(", ") : "No groups"}
                       </span>
