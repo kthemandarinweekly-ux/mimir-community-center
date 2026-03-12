@@ -94,10 +94,10 @@ providers.push(
       }
 
       const normalizedEmail = credentials.email.trim().toLowerCase();
-      const demoEmail = process.env.DEMO_EMAIL;
-      const demoPassword = process.env.DEMO_PASSWORD;
-      const adminLoginEmail = process.env.ADMIN_LOGIN_EMAIL;
-      const adminLoginPassword = process.env.ADMIN_LOGIN_PASSWORD;
+      const demoEmail = process.env.DEMO_EMAIL?.trim();
+      const demoPassword = process.env.DEMO_PASSWORD?.trim();
+      const adminLoginEmail = process.env.ADMIN_LOGIN_EMAIL?.trim();
+      const adminLoginPassword = process.env.ADMIN_LOGIN_PASSWORD?.trim();
       const credentialAccounts = [];
 
       if (adminLoginEmail && adminLoginPassword) {
@@ -121,7 +121,7 @@ providers.push(
       const matchedAccount = credentialAccounts.find(
         (account) =>
           account.email.toLowerCase() === normalizedEmail &&
-          account.password === credentials.password
+          account.password === credentials.password.trim()
       );
 
       if (matchedAccount) {
