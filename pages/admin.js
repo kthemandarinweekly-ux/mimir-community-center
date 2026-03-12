@@ -3,37 +3,48 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import NavBar from "../components/NavBar";
+import { useProfile } from "../components/useProfile";
+
+const AVATAR_OPTIONS = ["sunrise", "mint", "plum", "ember", "berry"];
 
 export default function AdminPage() {
   const { data: session } = useSession();
-  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",") || [];
-  const isAdmin = adminEmails.includes(session?.user?.email || "");
+  const { profile, saveProfile } = useProfile();
+  const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  const currentEmail = (session?.user?.email || "").toLowerCase();
+  const isAdmin = adminEmails.includes(currentEmail);
+
   const [events, setEvents] = useState([]);
   const [members, setMembers] = useState([]);
+  const [memberships, setMemberships] = useState([]);
   const [threads, setThreads] = useState([]);
   const [replies, setReplies] = useState([]);
-  const [drafts, setDrafts] = useState({});
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    title: "",
-    type: "Class",
-    start: "",
-    end: "",
-    description: "",
-    location: "",
-    link: "",
-  });
+  const [nickname, setNickname] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState("sunrise");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setNickname(profile.nickname || "");
+    setSelectedAvatar(profile.avatar || "sunrise");
+  }, [profile.nickname, profile.avatar]);
 
   const loadData = async () => {
     setLoading(true);
     setError("");
     try {
-      const [eventsRes, membersRes, threadsRes, repliesRes] = await Promise.all([
+      const [eventsRes, membersRes, membershipsRes, threadsRes, repliesRes, announcementsRes] = await Promise.all([
         fetch("/api/events"),
         fetch("/api/members"),
+        fetch("/api/memberships"),
         fetch("/api/threads"),
         fetch("/api/replies"),
+        fetch("/api/announcements?limit=20"),
       ]);
       if (eventsRes.ok) {
         const eventsData = await eventsRes.json();
@@ -43,6 +54,10 @@ export default function AdminPage() {
         const membersData = await membersRes.json();
         setMembers(membersData.members || []);
       }
+      if (membershipsRes.ok) {
+        const membershipsData = await membershipsRes.json();
+        setMemberships(membershipsData.memberships || []);
+      }
       if (threadsRes.ok) {
         const threadsData = await threadsRes.json();
         setThreads(threadsData.threads || []);
@@ -50,6 +65,10 @@ export default function AdminPage() {
       if (repliesRes.ok) {
         const repliesData = await repliesRes.json();
         setReplies(repliesData.replies || []);
+      }
+      if (announcementsRes.ok) {
+        const announcementsData = await announcementsRes.json();
+        setAnnouncements(announcementsData.announcements || []);
       }
     } catch (err) {
       setError("Unable to load admin data.");
@@ -64,57 +83,89 @@ export default function AdminPage() {
     }
   }, [isAdmin]);
 
-  const handleCreate = async () => {
-    if (!form.title || !form.start) {
-      setError("Title and start date are required.");
-      return;
-    }
-    setError("");
-    const response = await fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    if (!response.ok) {
-      setError("Unable to create event.");
-      return;
-    }
-    setForm({
-      title: "",
-      type: "Class",
-      start: "",
-      end: "",
-      description: "",
-      location: "",
-      link: "",
-    });
-    loadData();
+  const handleSaveProfile = () => {
+    saveProfile({ nickname: nickname.trim(), avatar: selectedAvatar });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleUpdate = async (eventId) => {
-    const draft = drafts[eventId] || {};
-    const response = await fetch(`/api/events/${eventId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(draft),
-    });
-    if (!response.ok) {
-      setError("Unable to update event.");
-      return;
-    }
-    loadData();
-  };
+  const memberDirectory = (() => {
+    const map = new Map();
+    const addOrMerge = ({ email, name }) => {
+      if (!email) return;
+      const key = email.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, {
+          email,
+          name: name || "Member",
+          groups: [],
+          groupCount: 0,
+          threads: 0,
+          replies: 0,
+          status: "member",
+        });
+      } else if (name && !map.get(key).name) {
+        map.get(key).name = name;
+      }
+    };
 
-  const setDraftField = (eventId, field, value) => {
-    setDrafts((prev) => ({
-      ...prev,
-      [eventId]: {
-        ...events.find((item) => item.id === eventId),
-        ...prev[eventId],
-        [field]: value,
-      },
-    }));
-  };
+    members.forEach((member) =>
+      addOrMerge({ email: member.email, name: member.name })
+    );
+    memberships.forEach((membership) =>
+      addOrMerge({ email: membership.userEmail, name: membership.userName })
+    );
+
+    memberships.forEach((membership) => {
+      const entry = map.get((membership.userEmail || "").toLowerCase());
+      if (!entry) return;
+      if (membership.groupName && !entry.groups.includes(membership.groupName)) {
+        entry.groups.push(membership.groupName);
+      }
+      if (!membership.groupName && membership.groupSlug && !entry.groups.includes(membership.groupSlug)) {
+        entry.groups.push(membership.groupSlug);
+      }
+      entry.groupCount = entry.groups.length;
+    });
+
+    threads.forEach((thread) => {
+      const entry = map.get((thread.authorEmail || "").toLowerCase());
+      if (entry) entry.threads += 1;
+    });
+
+    replies.forEach((reply) => {
+      const entry = map.get((reply.authorEmail || "").toLowerCase());
+      if (entry) entry.replies += 1;
+    });
+
+    map.forEach((entry, key) => {
+      if (adminEmails.includes(key)) {
+        entry.status = "admin";
+      } else if (entry.groupCount > 0) {
+        entry.status = "active member";
+      } else {
+        entry.status = "member";
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.status === "admin" && b.status !== "admin") return -1;
+      if (a.status !== "admin" && b.status === "admin") return 1;
+      return b.groupCount - a.groupCount;
+    });
+  })();
+
+  const now = new Date();
+  const upcomingEvents = events
+    .filter((event) => event.start && new Date(event.start) >= now)
+    .sort((a, b) => new Date(a.start) - new Date(b.start))
+    .slice(0, 8);
+  const recentReplies = [...replies]
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 8);
+  const recentAnnouncements = [...announcements]
+    .sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0))
+    .slice(0, 8);
 
   return (
     <>
@@ -133,9 +184,9 @@ export default function AdminPage() {
         <section className="detail-hero">
           <div>
             <p className="eyebrow">Admin center</p>
-            <h1>Manage community operations</h1>
+            <h1>Community operations dashboard</h1>
             <p className="lead">
-              Edit events, update calendar links, and keep track of member growth.
+              Real-time website status from Airtable. Edit content directly in Airtable, monitor everything here.
             </p>
           </div>
         </section>
@@ -174,30 +225,81 @@ export default function AdminPage() {
                   <p className="label">Replies</p>
                   <p className="value">{replies.length}</p>
                 </div>
+                <div>
+                  <p className="label">Announcements</p>
+                  <p className="value">{announcements.length}</p>
+                </div>
+                <div>
+                  <p className="label">Upcoming Events</p>
+                  <p className="value">{upcomingEvents.length}</p>
+                </div>
               </div>
             </section>
 
             <section className="admin-card">
-              <h2>Members</h2>
+              <h2>Admin Profile</h2>
+              <p className="label">Change your admin display name and avatar (same profile system as user dashboard).</p>
+              <div className="account-settings-form">
+                <label className="settings-field">
+                  <span>Display Name</span>
+                  <input
+                    type="text"
+                    placeholder="Enter admin display name"
+                    value={nickname}
+                    onChange={(event) => setNickname(event.target.value)}
+                  />
+                </label>
+                <label className="settings-field">
+                  <span>Email</span>
+                  <input type="email" value={session?.user?.email || ""} disabled />
+                </label>
+                <div className="settings-field">
+                  <span>Avatar</span>
+                  <div className="avatar-grid">
+                    {AVATAR_OPTIONS.map((avatar) => (
+                      <button
+                        key={avatar}
+                        type="button"
+                        className={`avatar-option ${selectedAvatar === avatar ? "selected" : ""}`}
+                        onClick={() => setSelectedAvatar(avatar)}
+                      >
+                        <img src={`/avatars/${avatar}.svg`} alt={`${avatar} avatar`} className="avatar-img" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button className="settings-save" type="button" onClick={handleSaveProfile}>
+                  {saved ? "Saved!" : "Save Profile"}
+                </button>
+              </div>
+            </section>
+
+            <section className="admin-card">
+              <h2>Members Directory</h2>
               {loading ? <p className="label">Loading members...</p> : null}
               <div className="admin-table">
                 <div className="admin-row admin-head">
                   <span>Name</span>
                   <span>Email</span>
-                  <span>Primary group</span>
+                  <span>Status</span>
+                  <span>Groups</span>
                 </div>
-                {members.length === 0 ? (
+                {memberDirectory.length === 0 ? (
                   <div className="admin-row">
-                    <span>Set up Airtable Members table</span>
+                    <span>No members yet</span>
                     <span>members@example.com</span>
-                    <span>Intermediate English</span>
+                    <span>member</span>
+                    <span>-</span>
                   </div>
                 ) : (
-                  members.map((user) => (
-                    <div key={user.email} className="admin-row">
+                  memberDirectory.map((user) => (
+                    <div key={user.email || user.name} className="admin-row">
                       <span>{user.name}</span>
                       <span>{user.email}</span>
-                      <span>{user.group}</span>
+                      <span>{user.status}</span>
+                      <span>
+                        {user.groups.length > 0 ? user.groups.join(", ") : "No groups"}
+                      </span>
                     </div>
                   ))
                 )}
@@ -205,97 +307,100 @@ export default function AdminPage() {
             </section>
 
             <section className="admin-card">
-              <h2>Calendar events</h2>
+              <h2>Notifications & Activity</h2>
               {error ? <p className="label">{error}</p> : null}
-              <div className="admin-event editor">
+              <div className="admin-event">
                 <div>
-                  <h3>New event</h3>
-                  <p className="label">Add a class, debate prep, or competition</p>
+                  <h3>Recent Announcements</h3>
+                  <p className="label">Pulled from Airtable Announcements table</p>
                 </div>
-                <div className="admin-form">
-                  <input
-                    type="text"
-                    placeholder="Title"
-                    value={form.title}
-                    onChange={(event) => setForm({ ...form, title: event.target.value })}
-                  />
-                  <select
-                    value={form.type}
-                    onChange={(event) => setForm({ ...form, type: event.target.value })}
-                  >
-                    <option value="Class">Class</option>
-                    <option value="Debate Prep">Debate Prep</option>
-                    <option value="Competition">Competition</option>
-                  </select>
-                  <input
-                    type="datetime-local"
-                    value={form.start}
-                    onChange={(event) => setForm({ ...form, start: event.target.value })}
-                  />
-                  <input
-                    type="datetime-local"
-                    value={form.end}
-                    onChange={(event) => setForm({ ...form, end: event.target.value })}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Location (optional)"
-                    value={form.location}
-                    onChange={(event) => setForm({ ...form, location: event.target.value })}
-                  />
-                  <input
-                    type="url"
-                    placeholder="Event link (optional)"
-                    value={form.link}
-                    onChange={(event) => setForm({ ...form, link: event.target.value })}
-                  />
-                  <textarea
-                    rows={3}
-                    placeholder="Short description (optional)"
-                    value={form.description}
-                    onChange={(event) => setForm({ ...form, description: event.target.value })}
-                  />
-                  <button className="cta small" type="button" onClick={handleCreate}>
-                    Publish event
-                  </button>
+                <div className="admin-table">
+                  <div className="admin-row admin-head">
+                    <span>Title</span>
+                    <span>Type</span>
+                    <span>Published</span>
+                  </div>
+                  {recentAnnouncements.length === 0 ? (
+                    <div className="admin-row">
+                      <span>No announcements</span>
+                      <span>-</span>
+                      <span>-</span>
+                    </div>
+                  ) : (
+                    recentAnnouncements.map((item) => (
+                      <div key={item.id} className="admin-row">
+                        <span>{item.title}</span>
+                        <span>{item.type || "general"}</span>
+                        <span>{item.publishedAt ? new Date(item.publishedAt).toLocaleDateString() : "Recent"}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
-              {events.map((event) => (
-                <div key={event.id} className="admin-event">
-                  <div>
-                    <input
-                      type="text"
-                      defaultValue={event.title}
-                      onChange={(evt) => setDraftField(event.id, "title", evt.target.value)}
-                    />
-                    <p className="label">Event title</p>
-                  </div>
-                  <div className="admin-form inline">
-                    <select
-                      defaultValue={event.type}
-                      onChange={(evt) => setDraftField(event.id, "type", evt.target.value)}
-                    >
-                      <option value="Class">Class</option>
-                      <option value="Debate Prep">Debate Prep</option>
-                      <option value="Competition">Competition</option>
-                    </select>
-                    <input
-                      type="datetime-local"
-                      defaultValue={event.start ? event.start.slice(0, 16) : ""}
-                      onChange={(evt) => setDraftField(event.id, "start", evt.target.value)}
-                    />
-                    <input
-                      type="url"
-                      placeholder="Event link"
-                      defaultValue={event.link}
-                      onChange={(evt) => setDraftField(event.id, "link", evt.target.value)}
-                    />
-                  </div>
-                  <button className="cta small" type="button" onClick={() => handleUpdate(event.id)}>
-                    Save
-                  </button>
+              <div className="admin-event">
+                <div>
+                  <h3>Recent Replies</h3>
+                  <p className="label">Latest discussion activity</p>
                 </div>
-              ))}
+                <div className="admin-table">
+                  <div className="admin-row admin-head">
+                    <span>Author</span>
+                    <span>Reply</span>
+                    <span>Date</span>
+                  </div>
+                  {recentReplies.length === 0 ? (
+                    <div className="admin-row">
+                      <span>No replies</span>
+                      <span>-</span>
+                      <span>-</span>
+                    </div>
+                  ) : (
+                    recentReplies.map((reply) => (
+                      <div key={reply.id} className="admin-row">
+                        <span>{reply.authorName || "Member"}</span>
+                        <span>{reply.body?.slice(0, 80) || "Reply"}</span>
+                        <span>{reply.createdAt ? new Date(reply.createdAt).toLocaleDateString() : "Recent"}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="admin-event">
+                <div>
+                  <h3>Upcoming Events Snapshot</h3>
+                  <p className="label">Read-only view; edit in Airtable</p>
+                </div>
+                <div className="admin-table">
+                  <div className="admin-row admin-head">
+                    <span>Event</span>
+                    <span>Type</span>
+                    <span>Date</span>
+                  </div>
+                  {upcomingEvents.length === 0 ? (
+                    <div className="admin-row">
+                      <span>No upcoming events</span>
+                      <span>-</span>
+                      <span>-</span>
+                    </div>
+                  ) : (
+                    upcomingEvents.map((event) => (
+                      <div key={event.id} className="admin-row">
+                        <span>{event.title}</span>
+                        <span>{event.type || "Class"}</span>
+                        <span>{event.start ? new Date(event.start).toLocaleDateString() : "TBD"}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="notice" style={{ marginTop: "16px" }}>
+                <div>
+                  <h4>Source of truth</h4>
+                  <p>To add or edit content, update Airtable tables. This admin center is dashboard-only monitoring.</p>
+                </div>
+              </div>
             </section>
           </>
         )}
