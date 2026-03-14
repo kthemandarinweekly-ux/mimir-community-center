@@ -1,5 +1,22 @@
 import { getCurrentSeason } from "../../../data/seasons";
 
+function seasonMatches(value, targetSeasonId) {
+  if (!targetSeasonId) return true;
+  if (!value) return false;
+
+  const matchesSingle = (entry) => {
+    const raw = String(entry || "").trim();
+    if (!raw) return false;
+    return raw === targetSeasonId || raw.startsWith(`${targetSeasonId} `) || raw.startsWith(`${targetSeasonId}(`);
+  };
+
+  if (Array.isArray(value)) {
+    return value.some(matchesSingle);
+  }
+
+  return matchesSingle(value);
+}
+
 export default async function handler(req, res) {
   const baseId = process.env.AIRTABLE_BASE_ID;
   const tableName = process.env.AIRTABLE_MATERIALS_TABLE_NAME || "Materials";
@@ -24,10 +41,6 @@ export default async function handler(req, res) {
       const formulaParts = [];
       if (type) {
         formulaParts.push(`{Type}='${type}'`);
-      }
-
-      if (targetSeasonId) {
-        formulaParts.push(`{SeasonId}='${targetSeasonId}'`);
       }
 
       if (shouldShowArchivedOnly) {
@@ -81,10 +94,16 @@ export default async function handler(req, res) {
         type: record.fields.Type || "document",
         fileUrl: record.fields.FileUrl || "",
         groupSlug: record.fields.GroupSlug || [],
-        seasonId: record.fields.SeasonId || "",
+        seasonId: record.fields.SeasonId || record.fields.Season || "",
         isArchived: record.fields.IsArchived === true,
         uploadedAt: record.fields.UploadedAt || null,
       }));
+
+      // Filter by season in JavaScript so both "2026-2" and "2026-2 (Season 2)"
+      // formats work, and both SeasonId / Season Airtable field names are accepted.
+      if (targetSeasonId) {
+        materials = materials.filter((m) => seasonMatches(m.seasonId, targetSeasonId));
+      }
 
       // Filter by groupSlug in JavaScript (handles multi-select arrays properly)
       if (groupSlug) {
